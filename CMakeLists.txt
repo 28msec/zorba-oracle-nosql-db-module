@@ -60,8 +60,11 @@ IF (zorba_util-jvm_module_FOUND)
       INCLUDE ("${Zorba_USE_FILE}")
 
       ADD_SUBDIRECTORY ("src")
-      ADD_SUBDIRECTORY ("srcJava")
-      ADD_TEST_DIRECTORY("${PROJECT_SOURCE_DIR}/test")
+#      ADD_SUBDIRECTORY ("srcJava")
+      DECLARE_ZORBA_JAR(FILE ${KVCLIENT_JAR} EXTERNAL)
+
+#      ADD_TEST_DIRECTORY("${PROJECT_SOURCE_DIR}/test")
+
       DONE_DECLARING_ZORBA_URIS ()
 
     ELSE( ALL_NOSQLDB_JARS )

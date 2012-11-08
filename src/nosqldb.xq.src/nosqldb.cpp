@@ -412,10 +412,12 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
       if (valueItem.isEncoded())
       {
           String lTmpEncoded(lMsg, lSize);
-          lMsg = encoding::Base64::decode(lTmpEncoded).c_str();
+          valueString = encoding::Base64::decode(lTmpEncoded).c_str();
       }
-
-      valueString = lMsg;
+      else
+      {
+          valueString = std::string(lMsg, lSize);
+      }
     }
 
     //    List majorList = new ArrayList();
@@ -516,6 +518,7 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
     //fill out the byte[]
     const char * buf = valueString.c_str();
     jsize bufSize = valueString.size();
+    std::cout << "  put bufSize: " << (int)bufSize << "  '" << valueString << "'" << std::endl; std::cout.flush();
     jbyteArray jbyteArrayValue = env->NewByteArray(bufSize);
     CHECK_EXCEPTION(env);
 
@@ -766,7 +769,7 @@ GetFunction::evaluate(const ExternalFunction::Arguments_t& args,
       CHECK_EXCEPTION(env);
 
       // assemble result { "value" : "the value" , "version" : 123 }
-      std::string ssString(buf);
+      std::string ssString(buf, jbaSize);
       Item val = NoSqlDBModule::getItemFactory()->createBase64Binary((const unsigned char*)ssString.c_str(), ssString.size());
       Item vers = NoSqlDBModule::getItemFactory()->createLong(versionLong);
 

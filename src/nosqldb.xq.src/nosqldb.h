@@ -39,7 +39,6 @@
 #include <zorba/zorba.h>
 
 #include "JavaVMSingleton.h"
-#include "CppOutputStreamCreator.h"
 
 
 #define NOSQLDB_MODULE_NAMESPACE "http://www.zorba-xquery.com/modules/nosqldb"
