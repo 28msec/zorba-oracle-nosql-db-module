@@ -74,6 +74,10 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return connect;
   }
+  else if (localName == "is-connected")
+  {
+      return isConnected;
+  }
   else if (localName == "disconnect")
   {
       return disconnect;
@@ -254,7 +258,6 @@ ConnectFunction::evaluate(const ExternalFunction::Arguments_t& args,
 
 
 // disconnect code
-
 ItemSequence_t
 DisconnectFunction::evaluate(const ExternalFunction::Arguments_t& args,
                            const zorba::StaticContext* aStaticContext,
@@ -347,6 +350,40 @@ DisconnectFunction::evaluate(const ExternalFunction::Arguments_t& args,
 }
 
 
+// is-connected code
+ItemSequence_t
+IsConnectedFunction::evaluate(const ExternalFunction::Arguments_t& args,
+                           const zorba::StaticContext* aStaticContext,
+                           const zorba::DynamicContext* aDynamicContext) const
+{
+    bool isConnected = false;
+
+    // read input param 0
+    String lInstanceID = getOneStringArgument(args, 0);
+
+    InstanceMap* lInstanceMap;
+    if (!(lInstanceMap = dynamic_cast<InstanceMap*>(aDynamicContext->getExternalFunctionParameter("nosqldbInstanceMap"))))
+    {
+      isConnected = false;
+    }
+    else
+    {
+        jobject kvsObjRef = lInstanceMap->getInstance(lInstanceID);
+        if (kvsObjRef)
+        {
+            isConnected = true;
+        }
+        else
+        {
+            isConnected = false;
+        }
+    }
+
+    return ItemSequence_t(new SingletonItemSequence(
+        NoSqlDBModule::getItemFactory()->createBoolean(isConnected)));
+}
+
+
 // put code
 
 ItemSequence_t
@@ -382,7 +419,6 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
       throwError("NoSQLDBModuleError", "$key param must be a JSON object");
 
     // read input param 2
-    ////const char* valueParam = getOneItemArgument(args, 2).getBase64BinaryValue();
     Item valueItem = getOneItemArgument(args, 2);
     std::string valueString;  // will always contain the straight/decoded value
 

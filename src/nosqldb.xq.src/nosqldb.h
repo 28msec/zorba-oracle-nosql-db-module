@@ -89,6 +89,34 @@ class ConnectFunction : public ContextualExternalFunction
                const zorba::DynamicContext*) const;
 };
 
+
+class IsConnectedFunction : public ContextualExternalFunction
+{
+  private:
+    const ExternalModule* theModule;
+    XmlDataManager* theDataManager;
+
+  public:
+    IsConnectedFunction(const ExternalModule* aModule) :
+      theModule(aModule),
+      theDataManager(Zorba::getInstance(0)->getXmlDataManager())
+    {}
+
+    ~IsConnectedFunction()
+    {}
+
+    virtual String getURI() const
+    { return theModule->getURI(); }
+
+    virtual String getLocalName() const
+    { return "is-connected"; }
+
+    virtual ItemSequence_t
+      evaluate(const ExternalFunction::Arguments_t& args,
+               const zorba::StaticContext*,
+               const zorba::DynamicContext*) const;
+};
+
 class DisconnectFunction : public ContextualExternalFunction
 {
   private:
@@ -205,6 +233,7 @@ class NoSqlDBModule : public ExternalModule
 {
   private:
     ExternalFunction* connect;
+    ExternalFunction* isConnected;
     ExternalFunction* disconnect;
     ExternalFunction* put;
     ExternalFunction* get;
@@ -218,6 +247,7 @@ class NoSqlDBModule : public ExternalModule
 
     NoSqlDBModule() :
         connect(new ConnectFunction(this)),
+        isConnected(new IsConnectedFunction(this)),
         disconnect(new DisconnectFunction(this)),
         put(new PutFunction(this)),
         get(new GetFunction(this)),
@@ -227,6 +257,7 @@ class NoSqlDBModule : public ExternalModule
     ~NoSqlDBModule()
     {
         delete connect;
+        delete isConnected;
         delete disconnect;
         delete put;
         delete get;

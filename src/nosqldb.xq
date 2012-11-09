@@ -78,9 +78,9 @@ nosql:disconnect($db as xs:anyURI) as empty-sequence() external;
  :
  : @param $db the KVStore reference
  : @return true if the KVStore reference is valid, false otherwise
-
+ :)
 declare %an:sequential function
-nosql:is-connected($db as xs:anyURI) as xs:boolean external;:)
+nosql:is-connected($db as xs:anyURI) as xs:boolean external;
 
 (:~
  : Get the value as base64Binary and version associated with the key.
