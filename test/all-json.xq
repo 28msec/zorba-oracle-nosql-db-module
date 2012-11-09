@@ -25,7 +25,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $val2 as object() := { "a2" : "a value 2" , "b" : 2, "c": [2, "222", jn:null()] };
   variable $ts2 := nosql:put-json($db, $key2, $val2 );
   variable $valueVer21 := nosql:get-json($db, $key2);
-  variable $delRes2 := nosql:delete($db, $key2);
+  variable $delRes2 := nosql:delete-value($db, $key2);
   variable $valueVer22 := nosql:get-json($db, $key2); 
 
   nosql:disconnect($db);

@@ -89,7 +89,7 @@ nosql:is-connected($db as xs:anyURI) as xs:boolean external;
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
  : @return the value and version associated with the key, or empty sequence if no associated value was found.
-
+ :)
 declare %an:sequential function
 nosql:get($db as xs:anyURI, $key as xs:string) as xs:string
 {
@@ -103,11 +103,11 @@ nosql:get($db as xs:anyURI, $key as xs:string) as xs:string
  : @param $key the key used to lookup the key/value pair.
  : @param $value the value part of the key/value pair.
  : @return the version of the new value.
-
+ :)
 declare %an:sequential function
 nosql:put($db as xs:anyURI, $key as xs:string, $value as xs:string) as xs:long
 {
-    nosql:put-string($db, {"major" : {$key} })
+    nosql:put-string($db, {"major" : {$key} }, $value)
 };
 
 
@@ -117,11 +117,11 @@ nosql:put($db as xs:anyURI, $key as xs:string, $value as xs:string) as xs:long
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
  : @return true if the delete is successful, or false if no existing value is present.
-
+ :)
 declare %an:sequential function
 nosql:delete($db as xs:anyURI, $key as xs:string) as xs:boolean
 {
-  nosql:delete($db, {"major" : {$key} })
+  nosql:delete-value($db, {"major" : {$key} })
 };
 
 
@@ -252,5 +252,5 @@ nosql:get-json($db as xs:anyURI, $key as object() ) as object()?
  : @return true if the delete is successful, or false if no existing value is present.
  :)
 declare %an:sequential function
-nosql:delete($db as xs:anyURI, $key as object() ) as xs:boolean external;
+nosql:delete-value($db as xs:anyURI, $key as object() ) as xs:boolean external;
 

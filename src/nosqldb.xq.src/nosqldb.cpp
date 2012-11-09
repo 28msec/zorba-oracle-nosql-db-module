@@ -90,7 +90,7 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return get;
   }
-  else if (localName == "delete")
+  else if (localName == "delete-value")
   {
       return del;
   }
@@ -554,7 +554,6 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
     //fill out the byte[]
     const char * buf = valueString.c_str();
     jsize bufSize = valueString.size();
-    std::cout << "  put bufSize: " << (int)bufSize << "  '" << valueString << "'" << std::endl; std::cout.flush();
     jbyteArray jbyteArrayValue = env->NewByteArray(bufSize);
     CHECK_EXCEPTION(env);
 

@@ -220,7 +220,7 @@ class DelFunction : public ContextualExternalFunction
     { return theModule->getURI(); }
 
     virtual String getLocalName() const
-    { return "delete"; }
+    { return "delete-value"; }
 
     virtual ItemSequence_t
       evaluate(const ExternalFunction::Arguments_t& args,

@@ -27,7 +27,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $val2 as xs:base64Binary := base64:encode("Value for key2");
   variable $ts2 := nosql:put-base64($db, $key2, $val2 );
   variable $valueVer21 := nosql:get-base64($db, $key2);
-  variable $delRes2 := nosql:delete($db, $key2);
+  variable $delRes2 := nosql:delete-value($db, $key2);
   variable $valueVer22 := nosql:get-base64($db, $key2);
 
   nosql:disconnect($db);
