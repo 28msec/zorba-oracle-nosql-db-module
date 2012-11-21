@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SET (ZORBA_WITH_NOSQLDB ON CACHE BOOL "Compile Zorba with NoSQL DB support" FORCE)
+SET (ZORBA_WITH_NOSQLDB ON CACHE BOOL "Compile Zorba with Oracle NoSQL DB support." FORCE)
 INCLUDE (CMakeJavaInformation )
 MESSAGE(STATUS "Generating Java API")
 EXECUTE_PROCESS (
@@ -21,7 +21,7 @@ EXECUTE_PROCESS (
   OUTPUT_QUIET
   ERROR_QUIET
   )
-MESSAGE (STATUS "Building Zorba with NoSQL DB support.")
+MESSAGE (STATUS "Building Zorba with Oracle NoSQL DB support.")
 
 INCLUDE_DIRECTORIES (${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
 INCLUDE_DIRECTORIES (${JAVA_INCLUDE_PATH})
