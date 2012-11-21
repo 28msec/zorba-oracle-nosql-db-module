@@ -1,4 +1,4 @@
-import module namespace nosql = "http://www.zorba-xquery.com/modules/nosqldb";
+import module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosqldb";
 
 {
   variable $opt := {

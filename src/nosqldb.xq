@@ -34,7 +34,7 @@ xquery version "3.0";
  :
  : @author Cezar Andrei
  :)
-module namespace nosql = "http://www.zorba-xquery.com/modules/nosqldb";
+module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosqldb";
 
 (:~
  : Import module for encoding/decoding base64Binary to/from string.

@@ -41,10 +41,7 @@
 #include "JavaVMSingleton.h"
 
 
-#define NOSQLDB_MODULE_NAMESPACE "http://www.zorba-xquery.com/modules/nosqldb"
-#define NOSQLDB_OPTIONS_NAMESPACE "http://www.zorba-xquery.com/modules/nosqldb/nosqldb-options"
-
-
+#define NOSQLDB_MODULE_NAMESPACE "http://www.zorba-xquery.com/modules/oracle-nosqldb"
 
 
 namespace zorba
@@ -272,7 +269,6 @@ class MultiDelFunction : public ContextualExternalFunction
       theModule(aModule),
       theDataManager(Zorba::getInstance(0)->getXmlDataManager())
     {}
-
     ~MultiDelFunction()
     {}
 

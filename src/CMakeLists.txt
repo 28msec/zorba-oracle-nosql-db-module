@@ -26,11 +26,8 @@ MESSAGE (STATUS "Building Zorba with NoSQL DB support.")
 INCLUDE_DIRECTORIES (${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
 INCLUDE_DIRECTORIES (${JAVA_INCLUDE_PATH})
 
-#DECLARE_ZORBA_SCHEMA (FILE nosqldb-options.xsd
-#  URI "http://www.zorba-xquery.com/modules/nosqlbd/nosqldb-options")
-
 DECLARE_ZORBA_MODULE (
-  URI "http://www.zorba-xquery.com/modules/nosqldb"
+  URI "http://www.zorba-xquery.com/modules/oracle-nosqldb"
   VERSION 1.0
   FILE "nosqldb.xq"
   ### CONFIG_FILES ../srcJava/org/zorbaxquery/modules/nosqldb/Config.java.in

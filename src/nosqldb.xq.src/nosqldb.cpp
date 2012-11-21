@@ -1065,7 +1065,6 @@ MultiGetFunction::evaluate(const ExternalFunction::Arguments_t& args,
                            const zorba::StaticContext* aStaticContext,
                            const zorba::DynamicContext* aDynamicContext) const
 {
-std::cout << "  mg 1" << "" << std::endl; std::cout.flush();
     jthrowable lException = 0;
     static JNIEnv* env;
 
@@ -1075,27 +1074,23 @@ std::cout << "  mg 1" << "" << std::endl; std::cout.flush();
 
       // read input param 0 $db
       String lInstanceID = getOneStringArgument(args, 0);
-std::cout << "  mg 2 '" << lInstanceID << "'" << std::endl; std::cout.flush();
 
       InstanceMap* lInstanceMap;
       if (!(lInstanceMap = dynamic_cast<InstanceMap*>(aDynamicContext->getExternalFunctionParameter("nosqldbInstanceMap"))))
       {
         throwError("NoInstanceMatch", "Not a NoSQL DB identifier.");
       }
-std::cout << "  mg 2.1 '" << lInstanceID << "'" << std::endl; std::cout.flush();
 
       jobject kvsObjRef = lInstanceMap->getInstance(lInstanceID);
       if (!kvsObjRef)
       {
           throwError("NoInstanceMatch", "No instance of NoSQL DB with the given identifier was found.");
       }
-std::cout << "  mg 2.2 '" << lInstanceID << "'" << std::endl; std::cout.flush();
 
       // read input param 1 $parentKey
       Item keyParam = getOneItemArgument(args, 1);
       if(!keyParam.isJSONItem())
         throwError("NoSQLDBModuleError", "$key param must be a JSON object");
-std::cout << "  mg 3 '" << "'" << std::endl; std::cout.flush();
 
       //    List majorList = new ArrayList();
       jclass arrayListClass = env->FindClass("java/util/ArrayList");
@@ -1190,7 +1185,6 @@ std::cout << "  mg 3 '" << "'" << std::endl; std::cout.flush();
       Item subRangeParam = getOneItemArgument(args, 2);
       if(!subRangeParam.isJSONItem())
         throwError("NoSQLDBModuleError", "$subRange param must be a JSON object");
-std::cout << "  mg 4 '" << "'" << std::endl; std::cout.flush();
 
       Item prefix = subRangeParam.getObjectValue("prefix");
       Item start = subRangeParam.getObjectValue("start");
@@ -1200,9 +1194,7 @@ std::cout << "  mg 4 '" << "'" << std::endl; std::cout.flush();
       if ( !prefix.isNull() && start.isNull() && end.isNull() )
       {
           String prefixValue = prefix.getStringValue();
-std::cout << "  mg 4.1 '" << prefixValue << "'" << std::endl; std::cout.flush();
           // create keyRange from prefix
-
           // KeyRange keyRange = new KeyRange(prefix);
           jclass keyRangeClass = env->FindClass("oracle/kv/KeyRange");
           CHECK_EXCEPTION(env);
@@ -1227,7 +1219,6 @@ std::cout << "  mg 4.1 '" << prefixValue << "'" << std::endl; std::cout.flush();
           if ( !endI.isNull() )
               endIncl = endI.getBooleanValue();
 
-std::cout << "  mg 4.2 " << startValue << startIncl << " - " << endValue << endIncl << std::endl; std::cout.flush();
           // create keyRange from start end
           // KeyRange keyRange = new KeyRange(start, startIncl, end, endIncl);
           jclass keyRangeClass = env->FindClass("oracle/kv/KeyRange");
@@ -1247,7 +1238,6 @@ std::cout << "  mg 4.2 " << startValue << startIncl << " - " << endValue << endI
       // get param 3 $depth as xs:string
       Item depthParam = getOneItemArgument(args, 3);
       String depthStr = depthParam.getStringValue();
-std::cout << "  mg 5 '" << depthStr << "'" << std::endl; std::cout.flush();
       jclass depthClass = env->FindClass("oracle/kv/Depth");
       CHECK_EXCEPTION(env);
       jobject depth_CHILDREN_ONLY = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"CHILDREN_ONLY", "Loracle/kv/Depth;"));
@@ -1268,7 +1258,6 @@ std::cout << "  mg 5 '" << depthStr << "'" << std::endl; std::cout.flush();
       // get param 4 $direction as xs:string
       Item dirParam = getOneItemArgument(args, 4);
       String dirStr = dirParam.getStringValue();
-std::cout << "  mg 6 '" << dirStr << "'" << std::endl; std::cout.flush();
       jclass dirClass = env->FindClass("oracle/kv/Direction");
       CHECK_EXCEPTION(env);
       jfieldID fidDirForward = env->GetStaticFieldID(dirClass,"FORWARD", "Loracle/kv/Direction;");
@@ -1291,8 +1280,8 @@ std::cout << "  mg 6 '" << dirStr << "'" << std::endl; std::cout.flush();
       CHECK_EXCEPTION(env);
       jobject iterator = env->CallObjectMethod(kvsObjRef, midkvsMultiGetIter, dirObj, 0, k, keyRangeObj, depthObj);
       CHECK_EXCEPTION(env);
-std::cout << "  mg 7 '" << "'" << std::endl; std::cout.flush();
 
+      // use the iterator
       jclass iterClass = env->FindClass("java/util/Iterator");
       CHECK_EXCEPTION(env);
       jmethodID midIterHasNext = env->GetMethodID(iterClass, "hasNext", "()Z");
@@ -1338,7 +1327,6 @@ std::cout << "  mg 7 '" << "'" << std::endl; std::cout.flush();
           //    iterator.hasNext()
           jboolean hasNext = env->CallBooleanMethod(iterator, midIterHasNext);
           CHECK_EXCEPTION(env);
-std::cout << "  mg 8 '" << hasNext << "'" << std::endl; std::cout.flush();
           if ( !hasNext )
               break;
 
@@ -1453,7 +1441,7 @@ std::cout << "  mg 8 '" << hasNext << "'" << std::endl; std::cout.flush();
                           "(Ljava/io/PrintWriter;)V"),
                   printWriter);
 
-  //      env->CallObjectMethod(printWriter, env->GetMethodID(printWriterClass, "flush", "()V"));
+        //env->CallObjectMethod(printWriter, env->GetMethodID(printWriterClass, "flush", "()V"));
         jmethodID toStringMethod =
               env->GetMethodID(stringWriterClass, "toString", "()Ljava/lang/String;");
         jobject errorMessageObj = env->CallObjectMethod( stringWriter, toStringMethod);
@@ -1661,7 +1649,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
       jobject depth_PARENT_AND_CHILDREN = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"PARENT_AND_CHILDREN", "Loracle/kv/Depth;"));
       jobject depth_DESCENDANTS_ONLY = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"DESCENDANTS_ONLY", "Loracle/kv/Depth;"));
       jobject depth_PARENT_AND_DESCENDANTS = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"PARENT_AND_DESCENDANTS", "Loracle/kv/Depth;"));
-      jobject depthObj;
+      jobject depthObj = depth_PARENT_AND_DESCENDANTS;
 
       if ( depthStr.compare("CHILDREN_ONLY")==0 )
           depthObj = depth_CHILDREN_ONLY;
