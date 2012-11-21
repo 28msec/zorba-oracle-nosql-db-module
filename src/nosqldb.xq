@@ -19,6 +19,12 @@ xquery version "3.0";
 (:~
  : This module provides minimal funtionality to interact with an <a href="http://www.oracle.com/technetwork/products/nosqldb/overview/index.html">Oracle NoSQL Database</a>.
  :
+ : Oracle NoSQL Database is built upon the proven Oracle Berkeley DB Java Edition
+ : high-availability storage engine, which is in widespread use in enterprises across
+ : industries. In addition to that it adds a layer of services for use in distributed environments.
+ : The resulting solution provides distributed, highly available key/value storage that is well
+ : suited to large-volume, latency-sensitive applications.
+ :
  : The kvclient library is used to implement these functions. Set the NOSQLDB_HOME environment variable to use this module.
  : <br />
  : <br />
@@ -253,4 +259,122 @@ nosql:get-json($db as xs:anyURI, $key as object() ) as object()?
  :)
 declare %an:sequential function
 nosql:delete-value($db as xs:anyURI, $key as object() ) as xs:boolean external;
+
+
+
+(:~ The CHILDREN_ONLY depth. :)
+declare variable $nosql:depth-CHILDREN_ONLY as xs:string := "CHILDREN_ONLY";
+
+(:~ The DESCENDANTS_ONLY depth. :)
+declare variable $nosql:depth-DESCENDANTS_ONLY as xs:string := "DESCENDANTS_ONLY";
+
+(:~ The PARENT_AND_CHILDREN depth. :)
+declare variable $nosql:depth-PARENT_AND_CHILDREN as xs:string := "PARENT_AND_CHILDREN";
+
+(:~ The PARENT_AND_DESCENDANTS depth. :)
+declare variable $nosql:depth- as xs:string := "PARENT_AND_DESCENDANTS";
+
+
+
+(:~ The REVERSE direction. :)
+declare variable $nosql:direction-REVERSE as xs:string := "REVERSE";
+
+(:~ The FORWARD direction. :)
+declare variable $nosql:direction-FORWARD as xs:string := "FORWARD";
+
+
+
+(:~
+ : Returns the descendant key/value pairs associated with the parentKey. 
+ : The subRange and the depth arguments can be used to further limit the 
+ : key/value pairs that are retrieved. The key/value pairs are fetched within
+ : the scope of a single transaction that effectively provides serializable isolation.
+ :
+ : This API should be used with caution since it could result in an
+ : OutOfMemoryError, or excessive GC activity, if the results cannot all be held
+ : in memory at one time.
+ :
+ : This method only allows fetching key/value pairs that are descendants of a
+ : parentKey that has a complete major path.
+ : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
+ :
+ : @param $db the KVStore reference
+ : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null. 
+ : The major key path must be complete. The minor key path may be omitted or may be a partial path.
+ : @param $subRange further restricts the range under the parentKey to the minor path components
+ : in this subRange. It may be null.
+ : @param $depth specifies whether the parent and only children or all descendants are returned. 
+ : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
+ : If anything else PARENT_AND_DESCENDANTS is implied.
+ : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or 
+ : anything else for forward.
+ : @return a list of objects containg key, value as base64Binary and version or
+ :         empty sequence if no key was found.
+ :)
+declare %an:sequential function
+nosql:multi-get-base64($db as xs:anyURI, $parentKey as object(), $subRange as object(), 
+    $depth as xs:string, $direction as xs:string) as object()* external;
+
+(:~
+ : Returns the descendant key/value pairs associated with the parentKey. 
+ : The subRange and the depth arguments can be used to further limit the 
+ : key/value pairs that are retrieved. The key/value pairs are fetched within
+ : the scope of a single transaction that effectively provides serializable isolation.
+ :
+ : This API should be used with caution since it could result in an
+ : OutOfMemoryError, or excessive GC activity, if the results cannot all be held
+ : in memory at one time.
+ :
+ : This method only allows fetching key/value pairs that are descendants of a
+ : parentKey that has a complete major path.
+ : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
+ :
+ : @param $db the KVStore reference
+ : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null. 
+ : The major key path must be complete. The minor key path may be omitted or may be a partial path.
+ : @param $subRange further restricts the range under the parentKey to the minor path components
+ : in this subRange. It may be null.
+ : @param $depth specifies whether the parent and only children or all descendants are returned. 
+ : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
+ : If anything else PARENT_AND_DESCENDANTS is implied.
+ : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or 
+ : anything else for forward.
+ : @return a list of objects containg key, value as string and version or
+ :         empty sequence if no key was found.
+ :)
+declare %an:sequential function
+nosql:multi-get-string($db as xs:anyURI, $parentKey as object(), $subRange as object(), 
+    $depth as xs:string, $direction as xs:string) as object()*
+{
+  let $r := nosql:multi-get-base64($db, $parentKey, $subRange, $depth, $direction)
+  for $i in $r
+  return
+      {
+        "key"    : { $i("key") },
+        "value"  : { base64:decode($i("value")) } ,
+        "version": { $i("version") }
+      }
+};
+
+(:~
+ : Deletes the descendant Key/Value pairs associated with the parentKey. The 
+ : subRange and the depth arguments can be used to further limit the key/value 
+ : pairs that are deleted. 
+ :
+ : @param $db the KVStore reference
+ : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null. 
+ : The major key path must be complete. The minor key path may be omitted or may be a partial path.
+ : @param $subRange further restricts the range under the parentKey to the minor path components
+ : in this subRange. It may be null. There are two ways to specify a sub-range: 
+ : - by prefix: { "prefix" : "a" } or by start-end:
+ : {"start": "a", "start-inclusive": true, "end" : "z", "emd-inclusive": true}. 
+ : For this case start-inclusive and end-inclusive are optional and they default to true.
+ : @param $depth specifies whether the parent and only children or all descendants are returned. 
+ : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
+ : If null, PARENT_AND_DESCENDANTS is implied.
+ : @return the count of deleted keys.
+ :)
+declare %an:sequential function
+nosql:multi-delete-values($db as xs:anyURI, $parentKey as object(), $subRange as object(), 
+    $depth as xs:string) as xs:int external;
 

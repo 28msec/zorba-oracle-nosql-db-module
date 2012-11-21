@@ -94,6 +94,14 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return del;
   }
+  else if (localName == "multi-get-base64")
+  {
+      return multiGet;
+  }
+  else if (localName == "multi-delete-values")
+  {
+      return multiDel;
+  }
 
   return 0;
 }
@@ -1000,6 +1008,680 @@ DelFunction::evaluate(const ExternalFunction::Arguments_t& args,
 
       return ItemSequence_t(new SingletonItemSequence(
           NoSqlDBModule::getItemFactory()->createBoolean(result)));
+    }
+    catch (zorba::jvm::VMOpenException&)
+    {
+        Item lQName = NoSqlDBModule::getItemFactory()->createQName(NOSQLDB_MODULE_NAMESPACE,
+                  "VM001");
+        throw USER_EXCEPTION(lQName, "Could not start the Java VM (is the classpath set?)");
+    }
+    catch (JavaException&)
+    {
+        // prints out to std err the stacktrace
+        //env->ExceptionDescribe();
+
+        jclass stringWriterClass = env->FindClass("java/io/StringWriter");
+        jclass printWriterClass = env->FindClass("java/io/PrintWriter");
+        jclass throwableClass = env->FindClass("java/lang/Throwable");
+        jobject stringWriter = env->NewObject(
+                  stringWriterClass,
+                  env->GetMethodID(stringWriterClass, "<init>", "()V"));
+
+        jobject printWriter = env->NewObject(
+                  printWriterClass,
+                  env->GetMethodID(printWriterClass, "<init>", "(Ljava/io/Writer;)V"),
+                  stringWriter);
+
+        env->CallObjectMethod(lException,
+                  env->GetMethodID(throwableClass, "printStackTrace",
+                          "(Ljava/io/PrintWriter;)V"),
+                  printWriter);
+
+        env->CallObjectMethod(printWriter, env->GetMethodID(printWriterClass, "flush", "()V"));
+        jmethodID toStringMethod =
+              env->GetMethodID(stringWriterClass, "toString", "()Ljava/lang/String;");
+        jobject errorMessageObj = env->CallObjectMethod( stringWriter, toStringMethod);
+        jstring errorMessage = (jstring) errorMessageObj;
+        const char *errMsg = env->GetStringUTFChars(errorMessage, NULL);
+        std::stringstream s;
+        s << "A Java Exception was thrown:" << std::endl << errMsg;
+        String errDescription;
+        errDescription += s.str();
+        env->ExceptionClear();
+        env->ReleaseStringUTFChars(errorMessage, errMsg);
+
+        Item errQName = NoSqlDBModule::getItemFactory()->createQName(NOSQLDB_MODULE_NAMESPACE,
+                  "JAVA-EXCEPTION");
+
+        //std::cout << "  java exception:'" << errDescription << "'" << std::endl; std::cout.flush();
+
+        throw USER_EXCEPTION(errQName, errDescription );
+    }
+}
+
+
+ItemSequence_t
+MultiGetFunction::evaluate(const ExternalFunction::Arguments_t& args,
+                           const zorba::StaticContext* aStaticContext,
+                           const zorba::DynamicContext* aDynamicContext) const
+{
+std::cout << "  mg 1" << "" << std::endl; std::cout.flush();
+    jthrowable lException = 0;
+    static JNIEnv* env;
+
+    try
+    {
+      env = zorba::jvm::JavaVMSingleton::getInstance(aStaticContext)->getEnv();
+
+      // read input param 0 $db
+      String lInstanceID = getOneStringArgument(args, 0);
+std::cout << "  mg 2 '" << lInstanceID << "'" << std::endl; std::cout.flush();
+
+      InstanceMap* lInstanceMap;
+      if (!(lInstanceMap = dynamic_cast<InstanceMap*>(aDynamicContext->getExternalFunctionParameter("nosqldbInstanceMap"))))
+      {
+        throwError("NoInstanceMatch", "Not a NoSQL DB identifier.");
+      }
+std::cout << "  mg 2.1 '" << lInstanceID << "'" << std::endl; std::cout.flush();
+
+      jobject kvsObjRef = lInstanceMap->getInstance(lInstanceID);
+      if (!kvsObjRef)
+      {
+          throwError("NoInstanceMatch", "No instance of NoSQL DB with the given identifier was found.");
+      }
+std::cout << "  mg 2.2 '" << lInstanceID << "'" << std::endl; std::cout.flush();
+
+      // read input param 1 $parentKey
+      Item keyParam = getOneItemArgument(args, 1);
+      if(!keyParam.isJSONItem())
+        throwError("NoSQLDBModuleError", "$key param must be a JSON object");
+std::cout << "  mg 3 '" << "'" << std::endl; std::cout.flush();
+
+      //    List majorList = new ArrayList();
+      jclass arrayListClass = env->FindClass("java/util/ArrayList");
+      CHECK_EXCEPTION(env);
+      jmethodID midALCons = env->GetMethodID(arrayListClass, "<init>", "()V");
+      CHECK_EXCEPTION(env);
+      jmethodID midALAdd = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
+      CHECK_EXCEPTION(env);
+      jobject majorList = env->NewObject(arrayListClass, midALCons);
+      CHECK_EXCEPTION(env);
+      //    List minorList = new ArrayList();
+      jobject minorList = env->NewObject(arrayListClass, midALCons);
+      CHECK_EXCEPTION(env);
+
+      //    majorList.add("Mk1");
+      Item majorValues = keyParam.getObjectValue("major");
+
+      if ( majorValues.isNull() )
+      {
+          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+      }
+      else if ( majorValues.isJSONItem() &&
+           majorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
+      {
+          uint64_t majorValueSize = majorValues.getArraySize();
+          for (uint64_t i = 1; i<=majorValueSize; i++)
+          {
+             Item mkItem = majorValues.getArrayValue(i);
+             if ( !mkItem.isAtomic() )
+                 throwError("NoInstanceMatch", "JSON 'major' property must be a string or an array.");
+             String mk = mkItem.getStringValue();
+             jstring jStrMk = env->NewStringUTF(mk.c_str());
+             CHECK_EXCEPTION(env);
+             env->CallBooleanMethod(majorList, midALAdd, jStrMk);
+             CHECK_EXCEPTION(env);
+          }
+      }
+      else if ( majorValues.isAtomic() )
+      {
+          String mk = majorValues.getStringValue();
+          jstring jStrMk = env->NewStringUTF(mk.c_str());
+          CHECK_EXCEPTION(env);
+          env->CallBooleanMethod(majorList, midALAdd, jStrMk);
+          CHECK_EXCEPTION(env);
+      }
+      else
+          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+
+      //    minorList.add("mk1");
+      Item minorValues = keyParam.getObjectValue("minor");
+
+      if ( minorValues.isNull() )
+      {
+          // do nothing it's perfectly fine to have "minor" missing
+      }
+      else if ( minorValues.isJSONItem() &&
+           minorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
+      {
+          uint64_t minorValueSize = minorValues.getArraySize();
+          for (uint64_t i = 1; i<=minorValueSize; i++)
+          {
+             Item mkItem = minorValues.getArrayValue(i);
+             if ( !mkItem.isAtomic() )
+                throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+             String mk = mkItem.getStringValue();
+             jstring jStrMk = env->NewStringUTF(mk.c_str());
+             CHECK_EXCEPTION(env);
+             env->CallBooleanMethod(minorList, midALAdd, jStrMk);
+             CHECK_EXCEPTION(env);
+          }
+      }
+      else if ( minorValues.isAtomic() )
+      {
+          String mk = minorValues.getStringValue();
+          jstring jStrMk = env->NewStringUTF(mk.c_str());
+          CHECK_EXCEPTION(env);
+          env->CallBooleanMethod(majorList, midALAdd, jStrMk);
+          CHECK_EXCEPTION(env);
+      }
+      else
+          throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+
+      //    Key k = Key.createKey(majorList, minorList);
+      jclass keyClass = env->FindClass("oracle/kv/Key");
+      CHECK_EXCEPTION(env);
+      jmethodID midKeyCreate = env->GetStaticMethodID(keyClass, "createKey", "(Ljava/util/List;Ljava/util/List;)Loracle/kv/Key;");
+      CHECK_EXCEPTION(env);
+      jobject k = env->CallStaticObjectMethod(keyClass, midKeyCreate, majorList, minorList);
+      CHECK_EXCEPTION(env);
+
+      // read input param 2 $subRange
+      Item subRangeParam = getOneItemArgument(args, 2);
+      if(!subRangeParam.isJSONItem())
+        throwError("NoSQLDBModuleError", "$subRange param must be a JSON object");
+std::cout << "  mg 4 '" << "'" << std::endl; std::cout.flush();
+
+      Item prefix = subRangeParam.getObjectValue("prefix");
+      Item start = subRangeParam.getObjectValue("start");
+      Item end = subRangeParam.getObjectValue("end");
+      jobject keyRangeObj;
+
+      if ( !prefix.isNull() && start.isNull() && end.isNull() )
+      {
+          String prefixValue = prefix.getStringValue();
+std::cout << "  mg 4.1 '" << prefixValue << "'" << std::endl; std::cout.flush();
+          // create keyRange from prefix
+
+          // KeyRange keyRange = new KeyRange(prefix);
+          jclass keyRangeClass = env->FindClass("oracle/kv/KeyRange");
+          CHECK_EXCEPTION(env);
+          jmethodID midKrCons = env->GetMethodID(keyRangeClass, "<init>", "(Ljava/lang/String;)V");
+          CHECK_EXCEPTION(env);
+          jstring jStrPrefix = env->NewStringUTF(prefixValue.c_str());
+          keyRangeObj = env->NewObject(keyRangeClass, midKrCons, jStrPrefix);
+          CHECK_EXCEPTION(env);
+      }
+      else if (!start.isNull() && !end.isNull() && prefix.isNull() )
+      {
+          String startValue = start.getStringValue();
+          String endValue = end.getStringValue();
+          bool startIncl = true;
+          bool endIncl = true;
+
+          Item startI = subRangeParam.getObjectValue("start-inclusive");
+          if ( !startI.isNull() )
+              startIncl = startI.getBooleanValue();
+
+          Item endI = subRangeParam.getObjectValue("end-inclusive");
+          if ( !endI.isNull() )
+              endIncl = endI.getBooleanValue();
+
+std::cout << "  mg 4.2 " << startValue << startIncl << " - " << endValue << endIncl << std::endl; std::cout.flush();
+          // create keyRange from start end
+          // KeyRange keyRange = new KeyRange(start, startIncl, end, endIncl);
+          jclass keyRangeClass = env->FindClass("oracle/kv/KeyRange");
+          CHECK_EXCEPTION(env);
+          jmethodID midKrCons = env->GetMethodID(keyRangeClass, "<init>", "(Ljava/lang/String;ZLjava/lang/String;Z)V");
+          CHECK_EXCEPTION(env);
+          jstring jStrStart = env->NewStringUTF(startValue.c_str());
+          jstring jStrEnd = env->NewStringUTF(endValue.c_str());
+          keyRangeObj = env->NewObject(keyRangeClass, midKrCons, jStrStart, startIncl, jStrEnd, endIncl);
+          CHECK_EXCEPTION(env);
+      }
+      else
+      {
+          throwError("NoSQLDBModuleError", "$subRange param must contain either 'prefix' or 'start' and 'end' properties.");
+      }
+
+      // get param 3 $depth as xs:string
+      Item depthParam = getOneItemArgument(args, 3);
+      String depthStr = depthParam.getStringValue();
+std::cout << "  mg 5 '" << depthStr << "'" << std::endl; std::cout.flush();
+      jclass depthClass = env->FindClass("oracle/kv/Depth");
+      CHECK_EXCEPTION(env);
+      jobject depth_CHILDREN_ONLY = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"CHILDREN_ONLY", "Loracle/kv/Depth;"));
+      jobject depth_PARENT_AND_CHILDREN = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"PARENT_AND_CHILDREN", "Loracle/kv/Depth;"));
+      jobject depth_DESCENDANTS_ONLY = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"DESCENDANTS_ONLY", "Loracle/kv/Depth;"));
+      jobject depth_PARENT_AND_DESCENDANTS = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"PARENT_AND_DESCENDANTS", "Loracle/kv/Depth;"));
+      jobject depthObj;
+
+      if ( depthStr.compare("CHILDREN_ONLY")==0 )
+          depthObj = depth_CHILDREN_ONLY;
+      else if ( depthStr.compare("PARENT_AND_CHILDREN")==0 )
+          depthObj = depth_PARENT_AND_CHILDREN;
+      else if ( depthStr.compare("DESCENDANTS_ONLY")==0 )
+          depthObj = depth_DESCENDANTS_ONLY;
+      else if ( depthStr.compare("PARENT_AND_DESCENDANTS")==0 )
+          depthObj = depth_PARENT_AND_DESCENDANTS;
+
+      // get param 4 $direction as xs:string
+      Item dirParam = getOneItemArgument(args, 4);
+      String dirStr = dirParam.getStringValue();
+std::cout << "  mg 6 '" << dirStr << "'" << std::endl; std::cout.flush();
+      jclass dirClass = env->FindClass("oracle/kv/Direction");
+      CHECK_EXCEPTION(env);
+      jfieldID fidDirForward = env->GetStaticFieldID(dirClass,"FORWARD", "Loracle/kv/Direction;");
+      CHECK_EXCEPTION(env);
+      jobject dir_FORWARD = env-> GetStaticObjectField(dirClass, fidDirForward);
+      CHECK_EXCEPTION(env);
+      jfieldID fidDirReverse = env->GetStaticFieldID(dirClass,"REVERSE", "Loracle/kv/Direction;");
+      CHECK_EXCEPTION(env);
+      jobject dir_REVERSE = env-> GetStaticObjectField(dirClass, fidDirReverse);
+      CHECK_EXCEPTION(env);
+
+      jobject dirObj = dir_FORWARD;
+      if ( dirStr.compare("REVERSE")==0 )
+          dirObj = dir_REVERSE;
+
+      //    java.util.Iterator<oracle.kv.KeyValueVersion> iterator = store.multiGetIterator(dirObj, 0, k, keyRangeObj, depthObj);
+      jclass kvsClass = env->FindClass("oracle/kv/KVStore");
+      CHECK_EXCEPTION(env);
+      jmethodID midkvsMultiGetIter = env->GetMethodID(kvsClass, "multiGetIterator", "(Loracle/kv/Direction;ILoracle/kv/Key;Loracle/kv/KeyRange;Loracle/kv/Depth;)Ljava/util/Iterator;");
+      CHECK_EXCEPTION(env);
+      jobject iterator = env->CallObjectMethod(kvsObjRef, midkvsMultiGetIter, dirObj, 0, k, keyRangeObj, depthObj);
+      CHECK_EXCEPTION(env);
+std::cout << "  mg 7 '" << "'" << std::endl; std::cout.flush();
+
+      jclass iterClass = env->FindClass("java/util/Iterator");
+      CHECK_EXCEPTION(env);
+      jmethodID midIterHasNext = env->GetMethodID(iterClass, "hasNext", "()Z");
+      CHECK_EXCEPTION(env);
+      jmethodID midIterNext = env->GetMethodID(iterClass, "next", "()Ljava/lang/Object;");
+      CHECK_EXCEPTION(env);
+
+      jclass listClass = env->FindClass("java/util/List");
+      CHECK_EXCEPTION(env);
+      jmethodID midListSize = env->GetMethodID(listClass, "size", "()I");
+      CHECK_EXCEPTION(env);
+      jmethodID midListGet = env->GetMethodID(listClass, "get", "(I)Ljava/lang/Object;");
+      CHECK_EXCEPTION(env);
+
+      jclass kvvClass = env->FindClass("oracle/kv/KeyValueVersion");
+      CHECK_EXCEPTION(env);
+      jmethodID midkvvGetKey = env->GetMethodID(kvvClass, "getKey", "()Loracle/kv/Key;");
+      CHECK_EXCEPTION(env);
+      jmethodID midkvvGetValue = env->GetMethodID(kvvClass, "getValue", "()Loracle/kv/Value;");
+      CHECK_EXCEPTION(env);
+      jmethodID midkvvGetVersion = env->GetMethodID(kvvClass, "getVersion", "()Loracle/kv/Version;");
+      CHECK_EXCEPTION(env);
+
+      jmethodID midKeyGetMajorPath = env->GetMethodID(keyClass, "getMajorPath", "()Ljava/util/List;");
+      CHECK_EXCEPTION(env);
+      jmethodID midKeyGetMinorPath = env->GetMethodID(keyClass, "getMinorPath", "()Ljava/util/List;");
+      CHECK_EXCEPTION(env);
+
+      jclass valueClass = env->FindClass("oracle/kv/Value");
+      CHECK_EXCEPTION(env);
+      jmethodID midValGetVal = env->GetMethodID(valueClass, "getValue", "()[B");
+      CHECK_EXCEPTION(env);
+
+      jclass versionClass = env->FindClass("oracle/kv/Version");
+      CHECK_EXCEPTION(env);
+      jmethodID midVerGetVer = env->GetMethodID(versionClass, "getVersion", "()J");
+      CHECK_EXCEPTION(env);
+
+      std::vector<Item> vec;
+
+      while( true )
+      {
+          //    iterator.hasNext()
+          jboolean hasNext = env->CallBooleanMethod(iterator, midIterHasNext);
+          CHECK_EXCEPTION(env);
+std::cout << "  mg 8 '" << hasNext << "'" << std::endl; std::cout.flush();
+          if ( !hasNext )
+              break;
+
+          //    KeyValueVersion kvv = iterator.next()
+          jobject kvv = env->CallObjectMethod(iterator, midIterNext);
+          CHECK_EXCEPTION(env);
+          //    Key keyObj = kvv.getKey();
+          jobject keyObj = env->CallObjectMethod(kvv, midkvvGetKey);
+          CHECK_EXCEPTION(env);
+          //    Value valueObj = kvv.getValue();
+          jobject valueObj = env->CallObjectMethod(kvv, midkvvGetValue);
+          CHECK_EXCEPTION(env);
+          //    Version version = kvv.getVersion();
+          jobject versionObj = env->CallObjectMethod(kvv, midkvvGetVersion);
+          CHECK_EXCEPTION(env);
+
+          //    List<String> majorList = keyObj.getMajorPath();
+          jobject majorList = env->CallObjectMethod(keyObj, midKeyGetMajorPath);
+          CHECK_EXCEPTION(env);
+          //    List<String> minorList = keyObj.getMinorPath();
+          jobject minorList = env->CallObjectMethod(keyObj, midKeyGetMinorPath);
+          CHECK_EXCEPTION(env);
+          //    byte[] valueBA = valueObj.getValue();
+          jbyteArray jbaValue = (jbyteArray) env->CallObjectMethod(valueObj, midValGetVal);
+          CHECK_EXCEPTION(env);
+          jsize jbaSize = env->GetArrayLength(jbaValue);
+          CHECK_EXCEPTION(env);
+          char * buf = new char[jbaSize];
+          env->GetByteArrayRegion(jbaValue, 0, jbaSize, (jbyte *)buf);
+          CHECK_EXCEPTION(env);
+
+          //    long version = versionObj.getVersion();
+          jlong version = env->CallLongMethod(versionObj, midVerGetVer);
+          CHECK_EXCEPTION(env);
+
+
+          std::vector<Item> majorVec;
+          jint majorListSize = env->CallIntMethod(majorList, midListSize);
+          for ( jint i=0; i<majorListSize; i++)
+          {
+              jstring majorJS = (jstring) env->CallObjectMethod(majorList, midListGet, i);
+              const char * majorCStr = env->GetStringUTFChars(majorJS, NULL);
+              String majorStr(majorCStr);
+              majorVec.push_back(NoSqlDBModule::getItemFactory()->createString(majorStr));
+          }
+          Item majorListItem =  NoSqlDBModule::getItemFactory()->createJSONArray(majorVec);
+
+          std::vector<Item> minorVec;
+          jint minorListSize = env->CallIntMethod(minorList, midListSize);
+          for ( jint i=0; i<minorListSize; i++)
+          {
+              jstring minorJS = (jstring) env->CallObjectMethod(minorList, midListGet, i);
+              const char * minorCStr = env->GetStringUTFChars(minorJS, NULL);
+              String minorStr(minorCStr);
+              minorVec.push_back(NoSqlDBModule::getItemFactory()->createString(minorStr));
+          }
+          Item minorListItem =  NoSqlDBModule::getItemFactory()->createJSONArray(minorVec);
+
+          std::vector<std::pair<Item, Item> > keyPairs;
+          keyPairs.reserve(2);
+          keyPairs.push_back(std::pair<Item, Item>(
+            NoSqlDBModule::getItemFactory()->createString(String("major")), majorListItem));
+          keyPairs.push_back(std::pair<Item, Item>(
+            NoSqlDBModule::getItemFactory()->createString(String("minor")), minorListItem));
+
+          Item keyJsonObj =  NoSqlDBModule::getItemFactory()->createJSONObject(keyPairs);
+
+          std::string ssString(buf, jbaSize);
+          Item val = NoSqlDBModule::getItemFactory()->createBase64Binary((const unsigned char*)ssString.c_str(), ssString.size());
+          Item vers = NoSqlDBModule::getItemFactory()->createLong(version);
+
+          std::vector<std::pair<Item, Item> > pairs;
+          pairs.reserve(3);
+          pairs.push_back(std::pair<Item, Item>(
+            NoSqlDBModule::getItemFactory()->createString(String("key")), keyJsonObj));
+          pairs.push_back(std::pair<Item, Item>(
+            NoSqlDBModule::getItemFactory()->createString(String("value")), val));
+          pairs.push_back(std::pair<Item, Item>(
+            NoSqlDBModule::getItemFactory()->createString(String("version")), vers));
+
+          Item lRes = NoSqlDBModule::getItemFactory()->createJSONObject(pairs);
+          vec.push_back(lRes);
+      }
+
+      return ItemSequence_t(new VectorItemSequence(vec));
+    }
+    catch (zorba::jvm::VMOpenException&)
+    {
+        Item lQName = NoSqlDBModule::getItemFactory()->createQName(NOSQLDB_MODULE_NAMESPACE,
+                  "VM001");
+        throw USER_EXCEPTION(lQName, "Could not start the Java VM (is the classpath set?)");
+    }
+    catch (JavaException&)
+    {
+        // prints out to std err the stacktrace
+        //env->ExceptionDescribe();
+
+        jclass stringWriterClass = env->FindClass("java/io/StringWriter");
+        jclass printWriterClass = env->FindClass("java/io/PrintWriter");
+        jclass throwableClass = env->FindClass("java/lang/Throwable");
+        jobject stringWriter = env->NewObject(
+                  stringWriterClass,
+                  env->GetMethodID(stringWriterClass, "<init>", "()V"));
+
+        jobject printWriter = env->NewObject(
+                  printWriterClass,
+                  env->GetMethodID(printWriterClass, "<init>", "(Ljava/io/Writer;)V"),
+                  stringWriter);
+
+        env->CallObjectMethod(lException,
+                  env->GetMethodID(throwableClass, "printStackTrace",
+                          "(Ljava/io/PrintWriter;)V"),
+                  printWriter);
+
+  //      env->CallObjectMethod(printWriter, env->GetMethodID(printWriterClass, "flush", "()V"));
+        jmethodID toStringMethod =
+              env->GetMethodID(stringWriterClass, "toString", "()Ljava/lang/String;");
+        jobject errorMessageObj = env->CallObjectMethod( stringWriter, toStringMethod);
+        jstring errorMessage = (jstring) errorMessageObj;
+        const char *errMsg = env->GetStringUTFChars(errorMessage, NULL);
+        std::stringstream s;
+        s << "A Java Exception was thrown:" << std::endl << errMsg;
+        String errDescription;
+        errDescription += s.str();
+        env->ExceptionClear();
+        env->ReleaseStringUTFChars(errorMessage, errMsg);
+
+        Item errQName = NoSqlDBModule::getItemFactory()->createQName(NOSQLDB_MODULE_NAMESPACE,
+                  "JAVA-EXCEPTION");
+
+        //std::cout << "  java exception:'" << errDescription << "'" << std::endl; std::cout.flush();
+
+        throw USER_EXCEPTION(errQName, errDescription );
+    }
+}
+
+
+ItemSequence_t
+MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
+                           const zorba::StaticContext* aStaticContext,
+                           const zorba::DynamicContext* aDynamicContext) const
+{
+    jthrowable lException = 0;
+    static JNIEnv* env;
+
+    try
+    {
+      env = zorba::jvm::JavaVMSingleton::getInstance(aStaticContext)->getEnv();
+
+      // read input param 0
+      String lInstanceID = getOneStringArgument(args, 0);
+
+      InstanceMap* lInstanceMap;
+      if (!(lInstanceMap = dynamic_cast<InstanceMap*>(aDynamicContext->getExternalFunctionParameter("nosqldbInstanceMap"))))
+      {
+        throwError("NoInstanceMatch", "Not a NoSQL DB identifier.");
+      }
+
+      jobject kvsObjRef = lInstanceMap->getInstance(lInstanceID);
+      if (!kvsObjRef)
+      {
+          throwError("NoInstanceMatch", "No instance of NoSQL DB with the given identifier was found.");
+      }
+
+      // read input param 1
+      Item keyParam = getOneItemArgument(args, 1);
+      if(!keyParam.isJSONItem())
+        throwError("NoSQLDBModuleError", "$key param must be a JSON object");
+
+      //    List majorList = new ArrayList();
+      jclass arrayListClass = env->FindClass("java/util/ArrayList");
+      CHECK_EXCEPTION(env);
+      jmethodID midALCons = env->GetMethodID(arrayListClass, "<init>", "()V");
+      CHECK_EXCEPTION(env);
+      jmethodID midALAdd = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
+      CHECK_EXCEPTION(env);
+      jobject majorList = env->NewObject(arrayListClass, midALCons);
+      CHECK_EXCEPTION(env);
+      //    List minorList = new ArrayList();
+      jobject minorList = env->NewObject(arrayListClass, midALCons);
+      CHECK_EXCEPTION(env);
+
+      //    majorList.add("Mk1");
+      Item majorValues = keyParam.getObjectValue("major");
+
+      if ( majorValues.isNull() )
+      {
+          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+      }
+      else if ( majorValues.isJSONItem() &&
+           majorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
+      {
+          uint64_t majorValueSize = majorValues.getArraySize();
+          for (uint64_t i = 1; i<=majorValueSize; i++)
+          {
+             Item mkItem = majorValues.getArrayValue(i);
+             if ( !mkItem.isAtomic() )
+                 throwError("NoInstanceMatch", "JSON 'major' property must be a string or an array.");
+             String mk = mkItem.getStringValue();
+             jstring jStrMk = env->NewStringUTF(mk.c_str());
+             CHECK_EXCEPTION(env);
+             env->CallBooleanMethod(majorList, midALAdd, jStrMk);
+             CHECK_EXCEPTION(env);
+          }
+      }
+      else if ( majorValues.isAtomic() )
+      {
+          String mk = majorValues.getStringValue();
+          jstring jStrMk = env->NewStringUTF(mk.c_str());
+          CHECK_EXCEPTION(env);
+          env->CallBooleanMethod(majorList, midALAdd, jStrMk);
+          CHECK_EXCEPTION(env);
+      }
+      else
+          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+
+      //    minorList.add("mk1");
+      Item minorValues = keyParam.getObjectValue("minor");
+
+      if ( minorValues.isNull() )
+      {
+          // do nothing it's perfectly fine to have "minor" missing
+      }
+      else if ( minorValues.isJSONItem() &&
+           minorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
+      {
+          uint64_t minorValueSize = minorValues.getArraySize();
+          for (uint64_t i = 1; i<=minorValueSize; i++)
+          {
+             Item mkItem = minorValues.getArrayValue(i);
+             if ( !mkItem.isAtomic() )
+                throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+             String mk = mkItem.getStringValue();
+             jstring jStrMk = env->NewStringUTF(mk.c_str());
+             CHECK_EXCEPTION(env);
+             env->CallBooleanMethod(minorList, midALAdd, jStrMk);
+             CHECK_EXCEPTION(env);
+          }
+      }
+      else if ( minorValues.isAtomic() )
+      {
+          String mk = minorValues.getStringValue();
+          jstring jStrMk = env->NewStringUTF(mk.c_str());
+          CHECK_EXCEPTION(env);
+          env->CallBooleanMethod(majorList, midALAdd, jStrMk);
+          CHECK_EXCEPTION(env);
+      }
+      else
+          throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+
+      //    Key k = Key.createKey(majorList, minorList);
+      jclass keyClass = env->FindClass("oracle/kv/Key");
+      CHECK_EXCEPTION(env);
+      jmethodID midKeyCreate = env->GetStaticMethodID(keyClass, "createKey", "(Ljava/util/List;Ljava/util/List;)Loracle/kv/Key;");
+      CHECK_EXCEPTION(env);
+      jobject k = env->CallStaticObjectMethod(keyClass, midKeyCreate, majorList, minorList);
+      CHECK_EXCEPTION(env);
+
+      // read input param 2 $subRange
+      Item subRangeParam = getOneItemArgument(args, 2);
+      if(!subRangeParam.isJSONItem())
+        throwError("NoSQLDBModuleError", "$subRange param must be a JSON object");
+
+      Item prefix = subRangeParam.getObjectValue("prefix");
+      Item start = subRangeParam.getObjectValue("start");
+      Item end = subRangeParam.getObjectValue("end");
+      jobject keyRangeObj;
+
+      if ( !prefix.isNull() && start.isNull() && end.isNull() )
+      {
+          String prefixValue = prefix.getStringValue();
+          // create keyRange from prefix
+
+          // KeyRange keyRange = new KeyRange(prefix);
+          jclass keyRangeClass = env->FindClass("oracle/kv/KeyRange");
+          CHECK_EXCEPTION(env);
+          jmethodID midKrCons = env->GetMethodID(keyRangeClass, "<init>", "(Ljava/lang/String;)V");
+          CHECK_EXCEPTION(env);
+          jstring jStrPrefix = env->NewStringUTF(prefixValue.c_str());
+          keyRangeObj = env->NewObject(keyRangeClass, midKrCons, jStrPrefix);
+          CHECK_EXCEPTION(env);
+      }
+      else if (!start.isNull() && !end.isNull() && prefix.isNull() )
+      {
+          String startValue = start.getStringValue();
+          String endValue = end.getStringValue();
+          bool startIncl = true;
+          bool endIncl = true;
+
+          Item startI = subRangeParam.getObjectValue("start-inclusive");
+          if ( !startI.isNull() )
+              startIncl = startI.getBooleanValue();
+
+          Item endI = subRangeParam.getObjectValue("end-inclusive");
+          if ( !endI.isNull() )
+              endIncl = endI.getBooleanValue();
+
+          // create keyRange from start end
+          // KeyRange keyRange = new KeyRange(start, startIncl, end, endIncl);
+          jclass keyRangeClass = env->FindClass("oracle/kv/KeyRange");
+          CHECK_EXCEPTION(env);
+          jmethodID midKrCons = env->GetMethodID(keyRangeClass, "<init>", "(Ljava/lang/String;ZLjava/lang/String;Z)V");
+          CHECK_EXCEPTION(env);
+          jstring jStrStart = env->NewStringUTF(startValue.c_str());
+          jstring jStrEnd = env->NewStringUTF(endValue.c_str());
+          keyRangeObj = env->NewObject(keyRangeClass, midKrCons, jStrStart, startIncl, jStrEnd, endIncl);
+          CHECK_EXCEPTION(env);
+      }
+      else
+      {
+          throwError("NoSQLDBModuleError", "$subRange param must contain either 'prefix' or 'start' and 'end' properties.");
+      }
+
+      // get param 3 $depth as xs:string
+      Item depthParam = getOneItemArgument(args, 3);
+      String depthStr = depthParam.getStringValue();
+      jclass depthClass = env->FindClass("oracle/kv/Depth");
+      CHECK_EXCEPTION(env);
+      jobject depth_CHILDREN_ONLY = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"CHILDREN_ONLY", "Loracle/kv/Depth;"));
+      jobject depth_PARENT_AND_CHILDREN = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"PARENT_AND_CHILDREN", "Loracle/kv/Depth;"));
+      jobject depth_DESCENDANTS_ONLY = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"DESCENDANTS_ONLY", "Loracle/kv/Depth;"));
+      jobject depth_PARENT_AND_DESCENDANTS = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"PARENT_AND_DESCENDANTS", "Loracle/kv/Depth;"));
+      jobject depthObj;
+
+      if ( depthStr.compare("CHILDREN_ONLY")==0 )
+          depthObj = depth_CHILDREN_ONLY;
+      else if ( depthStr.compare("PARENT_AND_CHILDREN")==0 )
+          depthObj = depth_PARENT_AND_CHILDREN;
+      else if ( depthStr.compare("DESCENDANTS_ONLY")==0 )
+          depthObj = depth_DESCENDANTS_ONLY;
+      else if ( depthStr.compare("PARENT_AND_DESCENDANTS")==0 )
+          depthObj = depth_PARENT_AND_DESCENDANTS;
+
+      //    ValueVersion valueVersion = store.delete(k);
+      jclass kvsClass = env->FindClass("oracle/kv/KVStore");
+      CHECK_EXCEPTION(env);
+      jmethodID midkvsMultiDelete = env->GetMethodID(kvsClass, "multiDelete", "(Loracle/kv/Key;Loracle/kv/KeyRange;Loracle/kv/Depth;)I");
+      CHECK_EXCEPTION(env);
+      jint result = env->CallIntMethod(kvsObjRef, midkvsMultiDelete, k, keyRangeObj, depthObj);
+      CHECK_EXCEPTION(env);
+
+      return ItemSequence_t(new SingletonItemSequence(
+          NoSqlDBModule::getItemFactory()->createInt(result)));
     }
     catch (zorba::jvm::VMOpenException&)
     {

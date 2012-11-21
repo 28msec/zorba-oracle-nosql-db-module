@@ -54,7 +54,13 @@ namespace nosqldb
 
 class NoSqlDBModule;
 class ConnectFunction;
+class IsConnectFunction;
 class DisconnectFunction;
+class PutFunction;
+class GetFunction;
+class DelFunction;
+class MultiGetFunction;
+class MultiDelFunction;
 class NoSqlDBOptions;
 class InstanceMap;
 
@@ -228,6 +234,61 @@ class DelFunction : public ContextualExternalFunction
                const zorba::DynamicContext*) const;
 };
 
+class MultiGetFunction : public ContextualExternalFunction
+{
+  private:
+    const ExternalModule* theModule;
+    XmlDataManager* theDataManager;
+
+  public:
+    MultiGetFunction(const ExternalModule* aModule) :
+      theModule(aModule),
+      theDataManager(Zorba::getInstance(0)->getXmlDataManager())
+    {}
+
+    ~MultiGetFunction()
+    {}
+
+    virtual String getURI() const
+    { return theModule->getURI(); }
+
+    virtual String getLocalName() const
+    { return "multi-get-base64"; }
+
+    virtual ItemSequence_t
+      evaluate(const ExternalFunction::Arguments_t& args,
+               const zorba::StaticContext*,
+               const zorba::DynamicContext*) const;
+};
+
+class MultiDelFunction : public ContextualExternalFunction
+{
+  private:
+    const ExternalModule* theModule;
+    XmlDataManager* theDataManager;
+
+  public:
+    MultiDelFunction(const ExternalModule* aModule) :
+      theModule(aModule),
+      theDataManager(Zorba::getInstance(0)->getXmlDataManager())
+    {}
+
+    ~MultiDelFunction()
+    {}
+
+    virtual String getURI() const
+    { return theModule->getURI(); }
+
+    virtual String getLocalName() const
+    { return "multi-delete-values"; }
+
+    virtual ItemSequence_t
+      evaluate(const ExternalFunction::Arguments_t& args,
+               const zorba::StaticContext*,
+               const zorba::DynamicContext*) const;
+};
+
+
 
 class NoSqlDBModule : public ExternalModule
 {
@@ -238,6 +299,8 @@ class NoSqlDBModule : public ExternalModule
     ExternalFunction* put;
     ExternalFunction* get;
     ExternalFunction* del;
+    ExternalFunction* multiGet;
+    ExternalFunction* multiDel;
 
   public:
     static ItemFactory* getItemFactory()
@@ -251,7 +314,9 @@ class NoSqlDBModule : public ExternalModule
         disconnect(new DisconnectFunction(this)),
         put(new PutFunction(this)),
         get(new GetFunction(this)),
-        del(new DelFunction(this))
+        del(new DelFunction(this)),
+        multiGet(new MultiGetFunction(this)),
+        multiDel(new MultiDelFunction(this))
     {}
 
     ~NoSqlDBModule()
@@ -262,6 +327,8 @@ class NoSqlDBModule : public ExternalModule
         delete put;
         delete get;
         delete del;
+        delete multiGet;
+        delete multiDel;
     }
 
     virtual String getURI() const
