@@ -272,7 +272,7 @@ declare variable $nosql:depth-DESCENDANTS_ONLY as xs:string := "DESCENDANTS_ONLY
 declare variable $nosql:depth-PARENT_AND_CHILDREN as xs:string := "PARENT_AND_CHILDREN";
 
 (:~ The PARENT_AND_DESCENDANTS depth. :)
-declare variable $nosql:depth- as xs:string := "PARENT_AND_DESCENDANTS";
+declare variable $nosql:depth-PARENT_AND_DESCENDANTS as xs:string := "PARENT_AND_DESCENDANTS";
 
 
 

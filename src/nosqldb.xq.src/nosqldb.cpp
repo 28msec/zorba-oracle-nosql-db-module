@@ -1065,6 +1065,7 @@ MultiGetFunction::evaluate(const ExternalFunction::Arguments_t& args,
                            const zorba::StaticContext* aStaticContext,
                            const zorba::DynamicContext* aDynamicContext) const
 {
+std::cout << "  mg: start" << std::endl; std::cout.flush();
     jthrowable lException = 0;
     static JNIEnv* env;
 
@@ -1410,7 +1411,7 @@ MultiGetFunction::evaluate(const ExternalFunction::Arguments_t& args,
           Item lRes = NoSqlDBModule::getItemFactory()->createJSONObject(pairs);
           vec.push_back(lRes);
       }
-
+std::cout << "  mg: finish" << std::endl; std::cout.flush();
       return ItemSequence_t(new VectorItemSequence(vec));
     }
     catch (zorba::jvm::VMOpenException&)
