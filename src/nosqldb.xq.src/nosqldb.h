@@ -168,7 +168,7 @@ class PutFunction : public ContextualExternalFunction
     { return theModule->getURI(); }
 
     virtual String getLocalName() const
-    { return "put-base64"; }
+    { return "put-binary"; }
 
     virtual ItemSequence_t
       evaluate(const ExternalFunction::Arguments_t& args,
@@ -196,7 +196,7 @@ class GetFunction : public ContextualExternalFunction
     { return theModule->getURI(); }
 
     virtual String getLocalName() const
-    { return "get-base64"; }
+    { return "get-binary"; }
 
     virtual ItemSequence_t
       evaluate(const ExternalFunction::Arguments_t& args,
@@ -250,7 +250,7 @@ class MultiGetFunction : public ContextualExternalFunction
     { return theModule->getURI(); }
 
     virtual String getLocalName() const
-    { return "multi-get-base64"; }
+    { return "multi-get-binary"; }
 
     virtual ItemSequence_t
       evaluate(const ExternalFunction::Arguments_t& args,

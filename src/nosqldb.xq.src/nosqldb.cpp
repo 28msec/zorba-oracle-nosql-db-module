@@ -82,11 +82,11 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return disconnect;
   }
-  else if (localName == "put-base64")
+  else if (localName == "put-binary")
   {
       return put;
   }
-  else if (localName == "get-base64")
+  else if (localName == "get-binary")
   {
       return get;
   }
@@ -94,7 +94,7 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return del;
   }
-  else if (localName == "multi-get-base64")
+  else if (localName == "multi-get-binary")
   {
       return multiGet;
   }

@@ -99,7 +99,7 @@ nosql:is-connected($db as xs:anyURI) as xs:boolean external;
 declare %an:sequential function
 nosql:get($db as xs:anyURI, $key as xs:string) as xs:string
 {
-    nosql:get-string($db, { "major" : {$key} } )("value")
+    nosql:get-text($db, { "major" : {$key} } )("value")
 };
 
 (:~
@@ -113,7 +113,7 @@ nosql:get($db as xs:anyURI, $key as xs:string) as xs:string
 declare %an:sequential function
 nosql:put($db as xs:anyURI, $key as xs:string, $value as xs:string) as xs:long
 {
-    nosql:put-string($db, {"major" : {$key} }, $value)
+    nosql:put-text($db, {"major" : {$key} }, $value)
 };
 
 
@@ -148,7 +148,7 @@ nosql:delete($db as xs:anyURI, $key as xs:string) as xs:boolean
  : @return the version of the new value.
  :)
 declare %an:sequential function
-nosql:put-base64($db as xs:anyURI, $key as object(), $value as xs:base64Binary) as xs:long external;
+nosql:put-binary($db as xs:anyURI, $key as object(), $value as xs:base64Binary) as xs:long external;
 
 (:~
  : Put a key/value pair, inserting or overwriting as appropriate.
@@ -163,9 +163,9 @@ nosql:put-base64($db as xs:anyURI, $key as object(), $value as xs:base64Binary) 
  : @return the version of the new value.
  :)
 declare %an:sequential function
-nosql:put-string($db as xs:anyURI, $key as object(), $stringValue as xs:string) as xs:long
+nosql:put-text($db as xs:anyURI, $key as object(), $stringValue as xs:string) as xs:long
 {
-  nosql:put-base64($db, $key, base64:encode($stringValue))
+  nosql:put-binary($db, $key, base64:encode($stringValue))
 };
 
 (:~
@@ -185,7 +185,7 @@ nosql:put-json($db as xs:anyURI, $key as object(), $jsonValue as object() ) as x
 {
   let $stringValue := fn:serialize( jn:encode-for-roundtrip( $jsonValue ) )
   return
-    nosql:put-base64($db, $key, base64:encode($stringValue))
+    nosql:put-binary($db, $key, base64:encode($stringValue))
 };
 
 (:~
@@ -198,7 +198,7 @@ nosql:put-json($db as xs:anyURI, $key as object(), $jsonValue as object() ) as x
  :         empty sequence if no associated value was found.
  :)
 declare %an:sequential function
-nosql:get-base64($db as xs:anyURI, $key as object() ) as object()? external;
+nosql:get-binary($db as xs:anyURI, $key as object() ) as object()? external;
 
 (:~
  : Get the value as string and version associated with the key.
@@ -210,9 +210,9 @@ nosql:get-base64($db as xs:anyURI, $key as object() ) as object()? external;
  :         empty sequence if no associated value was found.
  :)
 declare %an:sequential function
-nosql:get-string($db as xs:anyURI, $key as object() ) as object()?
+nosql:get-text($db as xs:anyURI, $key as object() ) as object()?
 {
-  let $r := nosql:get-base64($db, $key)
+  let $r := nosql:get-binary($db, $key)
   return
     if ( fn:exists($r) )
     then
@@ -237,7 +237,7 @@ nosql:get-string($db as xs:anyURI, $key as object() ) as object()?
 declare %an:sequential function
 nosql:get-json($db as xs:anyURI, $key as object() ) as object()?
 {
-  let $b := nosql:get-base64($db, $key)
+  let $b := nosql:get-binary($db, $key)
   return
     if ( fn:exists($b) )
     then
@@ -285,8 +285,8 @@ declare variable $nosql:direction-FORWARD as xs:string := "FORWARD";
 
 
 (:~
- : Returns the descendant key/value pairs associated with the parentKey. 
- : The subRange and the depth arguments can be used to further limit the 
+ : Returns the descendant key/value pairs associated with the parentKey.
+ : The subRange and the depth arguments can be used to further limit the
  : key/value pairs that are retrieved. The key/value pairs are fetched within
  : the scope of a single transaction that effectively provides serializable isolation.
  :
@@ -299,25 +299,25 @@ declare variable $nosql:direction-FORWARD as xs:string := "FORWARD";
  : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
  :
  : @param $db the KVStore reference
- : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null. 
+ : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null.
  : The major key path must be complete. The minor key path may be omitted or may be a partial path.
  : @param $subRange further restricts the range under the parentKey to the minor path components
  : in this subRange. It may be null.
- : @param $depth specifies whether the parent and only children or all descendants are returned. 
+ : @param $depth specifies whether the parent and only children or all descendants are returned.
  : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
  : If anything else PARENT_AND_DESCENDANTS is implied.
- : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or 
+ : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or
  : anything else for forward.
  : @return a list of objects containg key, value as base64Binary and version or
  :         empty sequence if no key was found.
  :)
 declare %an:sequential function
-nosql:multi-get-base64($db as xs:anyURI, $parentKey as object(), $subRange as object(), 
+nosql:multi-get-binary($db as xs:anyURI, $parentKey as object(), $subRange as object(),
     $depth as xs:string, $direction as xs:string) as object()* external;
 
 (:~
- : Returns the descendant key/value pairs associated with the parentKey. 
- : The subRange and the depth arguments can be used to further limit the 
+ : Returns the descendant key/value pairs associated with the parentKey.
+ : The subRange and the depth arguments can be used to further limit the
  : key/value pairs that are retrieved. The key/value pairs are fetched within
  : the scope of a single transaction that effectively provides serializable isolation.
  :
@@ -330,23 +330,23 @@ nosql:multi-get-base64($db as xs:anyURI, $parentKey as object(), $subRange as ob
  : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
  :
  : @param $db the KVStore reference
- : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null. 
+ : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null.
  : The major key path must be complete. The minor key path may be omitted or may be a partial path.
  : @param $subRange further restricts the range under the parentKey to the minor path components
  : in this subRange. It may be null.
- : @param $depth specifies whether the parent and only children or all descendants are returned. 
+ : @param $depth specifies whether the parent and only children or all descendants are returned.
  : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
  : If anything else PARENT_AND_DESCENDANTS is implied.
- : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or 
+ : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or
  : anything else for forward.
  : @return a list of objects containg key, value as string and version or
  :         empty sequence if no key was found.
  :)
 declare %an:sequential function
-nosql:multi-get-string($db as xs:anyURI, $parentKey as object(), $subRange as object(), 
+nosql:multi-get-text($db as xs:anyURI, $parentKey as object(), $subRange as object(),
     $depth as xs:string, $direction as xs:string) as object()*
 {
-  let $r := nosql:multi-get-base64($db, $parentKey, $subRange, $depth, $direction)
+  let $r := nosql:multi-get-binary($db, $parentKey, $subRange, $depth, $direction)
   for $i in $r
   return
       {
@@ -358,8 +358,8 @@ nosql:multi-get-string($db as xs:anyURI, $parentKey as object(), $subRange as ob
 
 
 (:~
- : Returns the descendant key/value pairs associated with the parentKey. 
- : The subRange and the depth arguments can be used to further limit the 
+ : Returns the descendant key/value pairs associated with the parentKey.
+ : The subRange and the depth arguments can be used to further limit the
  : key/value pairs that are retrieved. The key/value pairs are fetched within
  : the scope of a single transaction that effectively provides serializable isolation.
  :
@@ -372,23 +372,23 @@ nosql:multi-get-string($db as xs:anyURI, $parentKey as object(), $subRange as ob
  : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
  :
  : @param $db the KVStore reference
- : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null. 
+ : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null.
  : The major key path must be complete. The minor key path may be omitted or may be a partial path.
  : @param $subRange further restricts the range under the parentKey to the minor path components
  : in this subRange. It may be null.
- : @param $depth specifies whether the parent and only children or all descendants are returned. 
+ : @param $depth specifies whether the parent and only children or all descendants are returned.
  : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
  : If anything else PARENT_AND_DESCENDANTS is implied.
- : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or 
+ : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or
  : anything else for forward.
  : @return a list of objects containg key, value as JSON object and version or
  :         empty sequence if no key was found.
  :)
 declare %an:sequential function
-nosql:multi-get-json($db as xs:anyURI, $parentKey as object(), $subRange as object(), 
+nosql:multi-get-json($db as xs:anyURI, $parentKey as object(), $subRange as object(),
     $depth as xs:string, $direction as xs:string) as object()*
 {
-  let $r := nosql:multi-get-base64($db, $parentKey, $subRange, $depth, $direction)
+  let $r := nosql:multi-get-binary($db, $parentKey, $subRange, $depth, $direction)
   for $i in $r
   return
       {
@@ -400,24 +400,24 @@ nosql:multi-get-json($db as xs:anyURI, $parentKey as object(), $subRange as obje
 
 
 (:~
- : Deletes the descendant Key/Value pairs associated with the parentKey. The 
- : subRange and the depth arguments can be used to further limit the key/value 
- : pairs that are deleted. 
+ : Deletes the descendant Key/Value pairs associated with the parentKey. The
+ : subRange and the depth arguments can be used to further limit the key/value
+ : pairs that are deleted.
  :
  : @param $db the KVStore reference
- : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null. 
+ : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null.
  : The major key path must be complete. The minor key path may be omitted or may be a partial path.
  : @param $subRange further restricts the range under the parentKey to the minor path components
- : in this subRange. It may be null. There are two ways to specify a sub-range: 
+ : in this subRange. It may be null. There are two ways to specify a sub-range:
  : - by prefix: { "prefix" : "a" } or by start-end:
- : {"start": "a", "start-inclusive": true, "end" : "z", "emd-inclusive": true}. 
+ : {"start": "a", "start-inclusive": true, "end" : "z", "emd-inclusive": true}.
  : For this case start-inclusive and end-inclusive are optional and they default to true.
- : @param $depth specifies whether the parent and only children or all descendants are returned. 
+ : @param $depth specifies whether the parent and only children or all descendants are returned.
  : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
  : If null, PARENT_AND_DESCENDANTS is implied.
  : @return the count of deleted keys.
  :)
 declare %an:sequential function
-nosql:multi-delete-values($db as xs:anyURI, $parentKey as object(), $subRange as object(), 
+nosql:multi-delete-values($db as xs:anyURI, $parentKey as object(), $subRange as object(),
     $depth as xs:string) as xs:int external;
 
