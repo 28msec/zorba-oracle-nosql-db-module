@@ -8,11 +8,7 @@ import module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosq
                    
   variable $db := nosql:connect( $opt);
   
-  variable $isConnected1 := nosql:is-connected($db);
-  
   nosql:disconnect($db);
   
-  variable $isConnected2 := nosql:is-connected($db);
-  
-  ( $isConnected1, $isConnected2 )
+  fn:exists($db)
 }

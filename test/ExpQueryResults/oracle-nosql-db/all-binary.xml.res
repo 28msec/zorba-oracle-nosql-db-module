@@ -1,0 +1,1 @@
+{ "db" : true, "put1 version" : true, "get1" : "VmFsdWUgZm9yIE1rZXkxYS9Na2V5MWItbWs=", "get1 value as string" : "Value for Mkey1a/Mkey1b-mk", "put2" : true, "get2" : "VmFsdWUgZm9yIGtleTI=", "get2 value as string" : "Value for key2", "del2" : true, "get2 again" : null }

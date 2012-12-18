@@ -16,11 +16,11 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   
   variable $v := "Value for Mkey2/Mkey21-mk2";
   
-  variable $ts := nosql:put-string($db, $key1, $v  );
-  variable $valueVersion := nosql:get-string($db, $key1);
+  variable $ts := nosql:put-text($db, $key1, $v  );
+  variable $valueVersion := nosql:get-text($db, $key1);
 
   nosql:disconnect($db);
   
-  ( $v eq $valueVersion("value"), $valueVersion )
+  ( $v eq $valueVersion("value"), fn:exists($valueVersion("version")) )
 }
 

@@ -74,10 +74,6 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return connect;
   }
-  else if (localName == "is-connected")
-  {
-      return isConnected;
-  }
   else if (localName == "disconnect")
   {
       return disconnect;
@@ -355,40 +351,6 @@ DisconnectFunction::evaluate(const ExternalFunction::Arguments_t& args,
   }
 
   return ItemSequence_t(new EmptySequence());
-}
-
-
-// is-connected code
-ItemSequence_t
-IsConnectedFunction::evaluate(const ExternalFunction::Arguments_t& args,
-                           const zorba::StaticContext* aStaticContext,
-                           const zorba::DynamicContext* aDynamicContext) const
-{
-    bool isConnected = false;
-
-    // read input param 0
-    String lInstanceID = getOneStringArgument(args, 0);
-
-    InstanceMap* lInstanceMap;
-    if (!(lInstanceMap = dynamic_cast<InstanceMap*>(aDynamicContext->getExternalFunctionParameter("nosqldbInstanceMap"))))
-    {
-      isConnected = false;
-    }
-    else
-    {
-        jobject kvsObjRef = lInstanceMap->getInstance(lInstanceID);
-        if (kvsObjRef)
-        {
-            isConnected = true;
-        }
-        else
-        {
-            isConnected = false;
-        }
-    }
-
-    return ItemSequence_t(new SingletonItemSequence(
-        NoSqlDBModule::getItemFactory()->createBoolean(isConnected)));
 }
 
 
@@ -1245,7 +1207,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
       jobject depth_PARENT_AND_CHILDREN = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"PARENT_AND_CHILDREN", "Loracle/kv/Depth;"));
       jobject depth_DESCENDANTS_ONLY = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"DESCENDANTS_ONLY", "Loracle/kv/Depth;"));
       jobject depth_PARENT_AND_DESCENDANTS = env-> GetStaticObjectField(depthClass, env->GetStaticFieldID(depthClass,"PARENT_AND_DESCENDANTS", "Loracle/kv/Depth;"));
-      jobject depthObj;
+      jobject depthObj = depth_PARENT_AND_DESCENDANTS;
 
       if ( depthStr.compare("CHILDREN_ONLY")==0 )
           depthObj = depth_CHILDREN_ONLY;

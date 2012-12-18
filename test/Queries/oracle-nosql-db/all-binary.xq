@@ -21,25 +21,25 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
       };
       
   variable $val1 as xs:base64Binary := base64:encode("Value for Mkey1a/Mkey1b-mk");  
-  variable $ts1 := nosql:put-base64($db, $key1, $val1 );
-  variable $valueVer1 := nosql:get-base64($db, $key1);
+  variable $ts1 := nosql:put-binary($db, $key1, $val1 );
+  variable $valueVer1 := nosql:get-binary($db, $key1);
   
   variable $val2 as xs:base64Binary := base64:encode("Value for key2");
-  variable $ts2 := nosql:put-base64($db, $key2, $val2 );
-  variable $valueVer21 := nosql:get-base64($db, $key2);
+  variable $ts2 := nosql:put-binary($db, $key2, $val2 );
+  variable $valueVer21 := nosql:get-binary($db, $key2);
   variable $delRes2 := nosql:delete-value($db, $key2);
-  variable $valueVer22 := nosql:get-base64($db, $key2);
+  variable $valueVer22 := nosql:get-binary($db, $key2);
 
   nosql:disconnect($db);
 
   { 
-    "db" : {$db}, 
-    "put1 version": {$ts1}, 
-    "get1" : { $valueVer1 },
+    "db" : {fn:exists($db)}, 
+    "put1 version": {fn:exists($ts1)}, 
+    "get1" : { $valueVer1("value") },
     "get1 value as string" : { base64:decode($valueVer1("value")) },
     
-    "put2": {$ts2},
-    "get2": {$valueVer21},
+    "put2": {fn:exists($ts2)},
+    "get2": { $valueVer21("value") },
     "get2 value as string" : { base64:decode($valueVer21("value")) },
     "del2": {$delRes2},
     "get2 again": {$valueVer22}
