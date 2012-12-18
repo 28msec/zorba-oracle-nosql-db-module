@@ -161,26 +161,6 @@ nosql:put-text($db as xs:anyURI, $key as object(), $stringValue as xs:string) as
 };
 
 (:~
- : Put a key/value pair, inserting or overwriting as appropriate.
- :
- : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
- : {
- :    "major": ["major-key1","major-key2","major-key3"],
- :    "minor": ["minor-key1","minor-key2","minor-key3"]
- : }
- : @param $value the value part of the key/value pair as a json object
- : @return the version of the new value.
- :)
-declare %an:sequential function
-nosql:put-json($db as xs:anyURI, $key as object(), $jsonValue as object() ) as xs:long
-{
-  let $stringValue := fn:serialize( jn:encode-for-roundtrip( $jsonValue ) )
-  return
-    nosql:put-binary($db, $key, base64:encode($stringValue))
-};
-
-(:~
  : Get the value as base64Binary and version associated with the key.
  : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
  :
@@ -211,31 +191,6 @@ nosql:get-text($db as xs:anyURI, $key as object() ) as object()?
       {
         "value"  : { base64:decode($r("value")) } ,
         "version": { $r("version") }
-      }
-    else
-      ()
-};
-
-
-(:~
- : Get the value as a json object and version associated with the key.
- : Ex:  <pre>{ "value":"value as string", "version":"xs:long" }
- :
- : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
- : @return the value and version associated with the key, or
- :         empty sequence if no associated value was found.
- :)
-declare %an:sequential function
-nosql:get-json($db as xs:anyURI, $key as object() ) as object()?
-{
-  let $b := nosql:get-binary($db, $key)
-  return
-    if ( fn:exists($b) )
-    then
-      {
-        "value"  : { jn:decode-from-roundtrip(jn:parse-json(base64:decode($b("value")))) } ,
-        "version": { $b("version") }
       }
     else
       ()
@@ -344,48 +299,6 @@ nosql:multi-get-text($db as xs:anyURI, $parentKey as object(), $subRange as obje
       {
         "key"    : { $i("key") },
         "value"  : { base64:decode($i("value")) } ,
-        "version": { $i("version") }
-      }
-};
-
-
-(:~
- : Returns the descendant key/value pairs associated with the parentKey.
- : The subRange and the depth arguments can be used to further limit the
- : key/value pairs that are retrieved. The key/value pairs are fetched within
- : the scope of a single transaction that effectively provides serializable isolation.
- :
- : This API should be used with caution since it could result in an
- : OutOfMemoryError, or excessive GC activity, if the results cannot all be held
- : in memory at one time.
- :
- : This method only allows fetching key/value pairs that are descendants of a
- : parentKey that has a complete major path.
- : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
- :
- : @param $db the KVStore reference
- : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null.
- : The major key path must be complete. The minor key path may be omitted or may be a partial path.
- : @param $subRange further restricts the range under the parentKey to the minor path components
- : in this subRange. It may be null.
- : @param $depth specifies whether the parent and only children or all descendants are returned.
- : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
- : If anything else PARENT_AND_DESCENDANTS is implied.
- : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or
- : anything else for forward.
- : @return a list of objects containg key, value as JSON object and version or
- :         empty sequence if no key was found.
- :)
-declare %an:sequential function
-nosql:multi-get-json($db as xs:anyURI, $parentKey as object(), $subRange as object(),
-    $depth as xs:string, $direction as xs:string) as object()*
-{
-  let $r := nosql:multi-get-binary($db, $parentKey, $subRange, $depth, $direction)
-  for $i in $r
-  return
-      {
-        "key"    : { $i("key") },
-        "value"  : { jn:decode-from-roundtrip(jn:parse-json(base64:decode($i("value")))) } ,
         "version": { $i("version") }
       }
 };
