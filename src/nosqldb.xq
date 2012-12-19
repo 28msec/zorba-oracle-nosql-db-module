@@ -23,7 +23,7 @@ xquery version "3.0";
  : high-availability storage engine, which is in widespread use in enterprises across
  : industries. In addition to that it adds a layer of services for use in distributed environments.
  : The resulting solution provides distributed, highly available key/value storage that is well
- : suited to large-volume, latency-sensitive applications.
+ : suited to large-volume, latency-sensitive applications.<br/>
  :
  : The kvclient library is used to implement these functions. Set the NOSQLDB_HOME environment variable to use this module.
  : <br />
@@ -52,6 +52,9 @@ declare option ver:module-version "1.0";
 
 (:~
  : Connect to a NoSQL Database KVStore
+ :
+ : @param $options JSON object that contains "store-name" and "helper-host-ports". For example:
+ : <pre>{ "store-name" : "kvstore", "helper-host-ports" : ["localhost:5000"]}</pre>
  : @return the function has side-effects and returns an identifier for a connection to the KVStore
  :)
 declare %an:sequential function
@@ -73,6 +76,7 @@ nosql:connect-internal($store-name as xs:string, $helperHostPorts as xs:string+ 
 
 (:~
  : Disconnect from a KVStore
+ :
  : @param $db the KVStore reference
  : @return the function has side-effects and returns the empty sequence
  :)
@@ -81,8 +85,8 @@ nosql:disconnect($db as xs:anyURI) as empty-sequence() external;
 
 
 (:~
- : Get the value as base64Binary and version associated with the key.
- : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
+ : Get the value as string and version associated with the key.<br/>
+ : Ex:  <pre>{ "value":"value as string", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
@@ -99,7 +103,7 @@ nosql:get($db as xs:anyURI, $key as xs:string) as xs:string
  :
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
- : @param $value the value part of the key/value pair.
+ : @param $value the value part of the key/value pair as string.
  : @return the version of the new value.
  :)
 declare %an:sequential function
@@ -132,11 +136,11 @@ nosql:delete($db as xs:anyURI, $key as xs:string) as xs:boolean
  :
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
- : {
- :    "major": ["major-key1","major-key1","major-key1"],
- :    "minor": ["minor-key1","minor-key1","minor-key1"]
- : }
- : @param $value the value part of the key/value pair.
+ : <pre>{
+ :    "major": ["major-key1","major-key2","major-key3"],
+ :    "minor": ["minor-key1","minor-key2","minor-key3"]
+ : }</pre>
+ : @param $value the value part of the key/value pair as base64Binary.
  : @return the version of the new value.
  :)
 declare %an:sequential function
@@ -147,10 +151,10 @@ nosql:put-binary($db as xs:anyURI, $key as object(), $value as xs:base64Binary) 
  :
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
- : {
+ : <pre>{
  :    "major": ["major-key1","major-key2","major-key3"],
  :    "minor": ["minor-key1","minor-key2","minor-key3"]
- : }
+ : }</pre>
  : @param $value the value part of the key/value pair as a string.
  : @return the version of the new value.
  :)
@@ -161,7 +165,7 @@ nosql:put-text($db as xs:anyURI, $key as object(), $stringValue as xs:string) as
 };
 
 (:~
- : Get the value as base64Binary and version associated with the key.
+ : Get the value as base64Binary and version associated with the key.<br/>
  : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
@@ -173,8 +177,8 @@ declare %an:sequential function
 nosql:get-binary($db as xs:anyURI, $key as object() ) as object()? external;
 
 (:~
- : Get the value as string and version associated with the key.
- : Ex:  <pre>{ "value":"value as string", "version":"xs:long" }
+ : Get the value as string and version associated with the key.<br/>
+ : Ex:  <pre>{ "value":"value as string", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
@@ -235,14 +239,14 @@ declare variable $nosql:direction-FORWARD as xs:string := "FORWARD";
  : Returns the descendant key/value pairs associated with the parentKey.
  : The subRange and the depth arguments can be used to further limit the
  : key/value pairs that are retrieved. The key/value pairs are fetched within
- : the scope of a single transaction that effectively provides serializable isolation.
+ : the scope of a single transaction that effectively provides serializable isolation.<br/>
  :
  : This API should be used with caution since it could result in an
  : OutOfMemoryError, or excessive GC activity, if the results cannot all be held
- : in memory at one time.
+ : in memory at one time.<br/>
  :
  : This method only allows fetching key/value pairs that are descendants of a
- : parentKey that has a complete major path.
+ : parentKey that has a complete major path.<br/>
  : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
@@ -266,14 +270,14 @@ nosql:multi-get-binary($db as xs:anyURI, $parentKey as object(), $subRange as ob
  : Returns the descendant key/value pairs associated with the parentKey.
  : The subRange and the depth arguments can be used to further limit the
  : key/value pairs that are retrieved. The key/value pairs are fetched within
- : the scope of a single transaction that effectively provides serializable isolation.
+ : the scope of a single transaction that effectively provides serializable isolation.<br/>
  :
  : This API should be used with caution since it could result in an
  : OutOfMemoryError, or excessive GC activity, if the results cannot all be held
- : in memory at one time.
+ : in memory at one time.<br/>
  :
  : This method only allows fetching key/value pairs that are descendants of a
- : parentKey that has a complete major path.
+ : parentKey that has a complete major path.<br/>
  : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
@@ -314,8 +318,8 @@ nosql:multi-get-text($db as xs:anyURI, $parentKey as object(), $subRange as obje
  : The major key path must be complete. The minor key path may be omitted or may be a partial path.
  : @param $subRange further restricts the range under the parentKey to the minor path components
  : in this subRange. It may be null. There are two ways to specify a sub-range:
- : - by prefix: { "prefix" : "a" } or by start-end:
- : {"start": "a", "start-inclusive": true, "end" : "z", "emd-inclusive": true}.
+ : - by prefix: <code>{ "prefix" : "a" }</code> or by start-end:
+ : <code>{"start": "a", "start-inclusive": true, "end" : "z", "end-inclusive": true}</code>.
  : For this case start-inclusive and end-inclusive are optional and they default to true.
  : @param $depth specifies whether the parent and only children or all descendants are returned.
  : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
