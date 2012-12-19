@@ -82,7 +82,7 @@ nosql:disconnect($db as xs:anyURI) as empty-sequence() external;
 
 (:~
  : Get the value as base64Binary and version associated with the key.
- : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
+ : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
@@ -162,7 +162,7 @@ nosql:put-text($db as xs:anyURI, $key as object(), $stringValue as xs:string) as
 
 (:~
  : Get the value as base64Binary and version associated with the key.
- : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
+ : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
@@ -243,7 +243,7 @@ declare variable $nosql:direction-FORWARD as xs:string := "FORWARD";
  :
  : This method only allows fetching key/value pairs that are descendants of a
  : parentKey that has a complete major path.
- : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
+ : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
  : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null.
@@ -274,7 +274,7 @@ nosql:multi-get-binary($db as xs:anyURI, $parentKey as object(), $subRange as ob
  :
  : This method only allows fetching key/value pairs that are descendants of a
  : parentKey that has a complete major path.
- : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }
+ : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
  : @param $parentKey the parent key whose "child" KV pairs are to be fetched. It must not be null.
