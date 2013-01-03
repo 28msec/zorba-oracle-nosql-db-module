@@ -56,6 +56,8 @@ declare option ver:module-version "1.0";
  : @param $options JSON object that contains "store-name" and "helper-host-ports". For example:
  : <pre>{ "store-name" : "kvstore", "helper-host-ports" : ["localhost:5000"]}</pre>
  : @return the function has side-effects and returns an identifier for a connection to the KVStore
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:connect( $options as object() ) as xs:anyURI
@@ -79,6 +81,9 @@ nosql:connect-internal($store-name as xs:string, $helperHostPorts as xs:string+ 
  :
  : @param $db the KVStore reference
  : @return the function has side-effects and returns the empty sequence
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:disconnect($db as xs:anyURI) as empty-sequence() external;
@@ -91,6 +96,9 @@ nosql:disconnect($db as xs:anyURI) as empty-sequence() external;
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
  : @return the value and version associated with the key, or empty sequence if no associated value was found.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:get($db as xs:anyURI, $key as xs:string) as xs:string
@@ -105,6 +113,9 @@ nosql:get($db as xs:anyURI, $key as xs:string) as xs:string
  : @param $key the key used to lookup the key/value pair.
  : @param $value the value part of the key/value pair as string.
  : @return the version of the new value.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:put($db as xs:anyURI, $key as xs:string, $value as xs:string) as xs:long
@@ -119,11 +130,14 @@ nosql:put($db as xs:anyURI, $key as xs:string, $value as xs:string) as xs:long
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
  : @return true if the delete is successful, or false if no existing value is present.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:delete($db as xs:anyURI, $key as xs:string) as xs:boolean
 {
-  nosql:delete-value($db, {"major" : {$key} })
+  nosql:remove($db, {"major" : {$key} })
 };
 
 
@@ -142,6 +156,13 @@ nosql:delete($db as xs:anyURI, $key as xs:string) as xs:boolean
  : }</pre>
  : @param $value the value part of the key/value pair as base64Binary.
  : @return the version of the new value.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
+ : @error nosql:InvalidMajorKeyComponent If $key contains an invalid major key component.
+ : @error nosql:InvalidMinorKeyComponent If $key contains an invalid minor key component.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:put-binary($db as xs:anyURI, $key as object(), $value as xs:base64Binary) as xs:long external;
@@ -157,6 +178,13 @@ nosql:put-binary($db as xs:anyURI, $key as object(), $value as xs:base64Binary) 
  : }</pre>
  : @param $value the value part of the key/value pair as a string.
  : @return the version of the new value.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
+ : @error nosql:InvalidMajorKeyComponent If $key contains an invalid major key component.
+ : @error nosql:InvalidMinorKeyComponent If $key contains an invalid minor key component.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:put-text($db as xs:anyURI, $key as object(), $stringValue as xs:string) as xs:long
@@ -172,6 +200,13 @@ nosql:put-text($db as xs:anyURI, $key as object(), $stringValue as xs:string) as
  : @param $key the key used to lookup the key/value pair.
  : @return the value and version associated with the key, or
  :         empty sequence if no associated value was found.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
+ : @error nosql:InvalidMajorKeyComponent If $key contains an invalid major key component.
+ : @error nosql:InvalidMinorKeyComponent If $key contains an invalid minor key component.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:get-binary($db as xs:anyURI, $key as object() ) as object()? external;
@@ -184,6 +219,13 @@ nosql:get-binary($db as xs:anyURI, $key as object() ) as object()? external;
  : @param $key the key used to lookup the key/value pair.
  : @return the value and version associated with the key, or
  :         empty sequence if no associated value was found.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
+ : @error nosql:InvalidMajorKeyComponent If $key contains an invalid major key component.
+ : @error nosql:InvalidMinorKeyComponent If $key contains an invalid minor key component.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:get-text($db as xs:anyURI, $key as object() ) as object()?
@@ -207,9 +249,16 @@ nosql:get-text($db as xs:anyURI, $key as object() ) as object()?
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
  : @return true if the delete is successful, or false if no existing value is present.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
+ : @error nosql:InvalidMajorKeyComponent If $key contains an invalid major key component.
+ : @error nosql:InvalidMinorKeyComponent If $key contains an invalid minor key component.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
-nosql:delete-value($db as xs:anyURI, $key as object() ) as xs:boolean external;
+nosql:remove($db as xs:anyURI, $key as object() ) as xs:boolean external;
 
 
 
@@ -261,6 +310,15 @@ declare variable $nosql:direction-FORWARD as xs:string := "FORWARD";
  : anything else for forward.
  : @return a list of objects containg key, value as base64Binary and version or
  :         empty sequence if no key was found.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
+ : @error nosql:InvalidMajorKeyComponent If $key contains an invalid major key component.
+ : @error nosql:InvalidMinorKeyComponent If $key contains an invalid minor key component.
+ : @error nosql:NoKeyRange If $subRange is not a JSON object.
+ : @error nosql:InvalidKeyRange If $subRange is invalid.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:multi-get-binary($db as xs:anyURI, $parentKey as object(), $subRange as object(),
@@ -292,6 +350,15 @@ nosql:multi-get-binary($db as xs:anyURI, $parentKey as object(), $subRange as ob
  : anything else for forward.
  : @return a list of objects containg key, value as string and version or
  :         empty sequence if no key was found.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
+ : @error nosql:InvalidMajorKeyComponent If $key contains an invalid major key component.
+ : @error nosql:InvalidMinorKeyComponent If $key contains an invalid minor key component.
+ : @error nosql:NoKeyRange If $subRange is not a JSON object.
+ : @error nosql:InvalidKeyRange If $subRange is invalid.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
 nosql:multi-get-text($db as xs:anyURI, $parentKey as object(), $subRange as object(),
@@ -325,8 +392,17 @@ nosql:multi-get-text($db as xs:anyURI, $parentKey as object(), $subRange as obje
  : Values are: CHILDREN_ONLY, DESCENDANTS_ONLY, PARENT_AND_CHILDREN, PARENT_AND_DESCENDANTS.
  : If null, PARENT_AND_DESCENDANTS is implied.
  : @return the count of deleted keys.
+ : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
+ : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
+ : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
+ : @error nosql:InvalidMajorKeyComponent If $key contains an invalid major key component.
+ : @error nosql:InvalidMinorKeyComponent If $key contains an invalid minor key component.
+ : @error nosql:NoKeyRange If $subRange is not a JSON object.
+ : @error nosql:InvalidKeyRange If $subRange is invalid.
+ : @error nosql:VM001 If the JVM cannot be initiaized corectly.
+ : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
  :)
 declare %an:sequential function
-nosql:multi-delete-values($db as xs:anyURI, $parentKey as object(), $subRange as object(),
+nosql:multi-remove($db as xs:anyURI, $parentKey as object(), $subRange as object(),
     $depth as xs:string) as xs:int external;
 

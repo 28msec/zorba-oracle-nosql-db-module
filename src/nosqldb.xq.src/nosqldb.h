@@ -196,7 +196,7 @@ class DelFunction : public ContextualExternalFunction
     { return theModule->getURI(); }
 
     virtual String getLocalName() const
-    { return "delete-value"; }
+    { return "remove"; }
 
     virtual ItemSequence_t
       evaluate(const ExternalFunction::Arguments_t& args,
@@ -249,7 +249,7 @@ class MultiDelFunction : public ContextualExternalFunction
     { return theModule->getURI(); }
 
     virtual String getLocalName() const
-    { return "multi-delete-values"; }
+    { return "multi-remove"; }
 
     virtual ItemSequence_t
       evaluate(const ExternalFunction::Arguments_t& args,

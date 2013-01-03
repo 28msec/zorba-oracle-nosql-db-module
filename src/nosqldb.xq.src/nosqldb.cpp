@@ -86,7 +86,7 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return get;
   }
-  else if (localName == "delete-value")
+  else if (localName == "remove")
   {
       return del;
   }
@@ -94,7 +94,7 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return multiGet;
   }
-  else if (localName == "multi-delete-values")
+  else if (localName == "multi-remove")
   {
       return multiDel;
   }
@@ -386,7 +386,7 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
     // read input param 1
     Item keyParam = getOneItemArgument(args, 1);
     if(!keyParam.isJSONItem())
-      throwError("NoSQLDBModuleError", "$key param must be a JSON object");
+      throwError("InvalidKeyParam", "$key param must be a JSON object");
 
     // read input param 2
     Item valueItem = getOneItemArgument(args, 2);
@@ -444,7 +444,7 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
 
     if ( majorValues.isNull() )
     {
-        throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+        throwError("NoMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
     }
     else if ( majorValues.isJSONItem() &&
          majorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
@@ -454,7 +454,7 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
         {
            Item mkItem = majorValues.getArrayValue(i);
            if ( !mkItem.isAtomic() )
-               throwError("NoInstanceMatch", "JSON 'major' property must be a string or an array.");
+               throwError("InvalidMajorKeyComponent", "JSON 'major' property must be a string or an array.");
            String mk = mkItem.getStringValue();
            jstring jStrMk = env->NewStringUTF(mk.c_str());
            CHECK_EXCEPTION(env);
@@ -471,7 +471,7 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
         CHECK_EXCEPTION(env);
     }
     else
-        throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+        throwError("InvalidMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
 
     //    minorList.add("mk1");
     Item minorValues = keyParam.getObjectValue("minor");
@@ -488,7 +488,7 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
         {
            Item mkItem = minorValues.getArrayValue(i);
            if ( !mkItem.isAtomic() )
-              throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+              throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
            String mk = mkItem.getStringValue();
            jstring jStrMk = env->NewStringUTF(mk.c_str());
            CHECK_EXCEPTION(env);
@@ -505,7 +505,7 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
         CHECK_EXCEPTION(env);
     }
     else
-        throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+        throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
 
     //    Key k = Key.createKey(majorList, minorList);
     jclass keyClass = env->FindClass("oracle/kv/Key");
@@ -633,7 +633,7 @@ GetFunction::evaluate(const ExternalFunction::Arguments_t& args,
       // read input param 1
       Item keyParam = getOneItemArgument(args, 1);
       if(!keyParam.isJSONItem())
-        throwError("NoSQLDBModuleError", "$key param must be a JSON object");
+        throwError("InvalidKeyParam", "$key param must be a JSON object");
 
       //    List majorList = new ArrayList();
       jclass arrayListClass = env->FindClass("java/util/ArrayList");
@@ -653,7 +653,7 @@ GetFunction::evaluate(const ExternalFunction::Arguments_t& args,
 
       if ( majorValues.isNull() )
       {
-          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+          throwError("NoMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
       }
       else if ( majorValues.isJSONItem() &&
            majorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
@@ -663,7 +663,7 @@ GetFunction::evaluate(const ExternalFunction::Arguments_t& args,
           {
              Item mkItem = majorValues.getArrayValue(i);
              if ( !mkItem.isAtomic() )
-                 throwError("NoInstanceMatch", "JSON 'major' property must be a string or an array.");
+                 throwError("InvalidMajorKeyComponent", "JSON 'major' property must be a string or an array.");
              String mk = mkItem.getStringValue();
              jstring jStrMk = env->NewStringUTF(mk.c_str());
              CHECK_EXCEPTION(env);
@@ -680,7 +680,7 @@ GetFunction::evaluate(const ExternalFunction::Arguments_t& args,
           CHECK_EXCEPTION(env);
       }
       else
-          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+          throwError("InvalidMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
 
 
       //    minorList.add("mk1");
@@ -698,7 +698,7 @@ GetFunction::evaluate(const ExternalFunction::Arguments_t& args,
           {
              Item mkItem = minorValues.getArrayValue(i);
              if ( !mkItem.isAtomic() )
-                throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+                throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
              String mk = mkItem.getStringValue();
              jstring jStrMk = env->NewStringUTF(mk.c_str());
              CHECK_EXCEPTION(env);
@@ -715,7 +715,7 @@ GetFunction::evaluate(const ExternalFunction::Arguments_t& args,
           CHECK_EXCEPTION(env);
       }
       else
-          throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+          throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
 
       //    Key k = Key.createKey(majorList, minorList);
       jclass keyClass = env->FindClass("oracle/kv/Key");
@@ -869,7 +869,7 @@ DelFunction::evaluate(const ExternalFunction::Arguments_t& args,
       // read input param 1
       Item keyParam = getOneItemArgument(args, 1);
       if(!keyParam.isJSONItem())
-        throwError("NoSQLDBModuleError", "$key param must be a JSON object");
+        throwError("InvalidKeyParam", "$key param must be a JSON object");
 
       //    List majorList = new ArrayList();
       jclass arrayListClass = env->FindClass("java/util/ArrayList");
@@ -889,7 +889,7 @@ DelFunction::evaluate(const ExternalFunction::Arguments_t& args,
 
       if ( majorValues.isNull() )
       {
-          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+          throwError("NoMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
       }
       else if ( majorValues.isJSONItem() &&
            majorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
@@ -899,7 +899,7 @@ DelFunction::evaluate(const ExternalFunction::Arguments_t& args,
           {
              Item mkItem = majorValues.getArrayValue(i);
              if ( !mkItem.isAtomic() )
-                 throwError("NoInstanceMatch", "JSON 'major' property must be a string or an array.");
+                 throwError("InvalidMajorKeyComponent", "JSON 'major' property must be a string or an array.");
              String mk = mkItem.getStringValue();
              jstring jStrMk = env->NewStringUTF(mk.c_str());
              CHECK_EXCEPTION(env);
@@ -916,7 +916,7 @@ DelFunction::evaluate(const ExternalFunction::Arguments_t& args,
           CHECK_EXCEPTION(env);
       }
       else
-          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+          throwError("InvalidMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
 
       //    minorList.add("mk1");
       Item minorValues = keyParam.getObjectValue("minor");
@@ -933,7 +933,7 @@ DelFunction::evaluate(const ExternalFunction::Arguments_t& args,
           {
              Item mkItem = minorValues.getArrayValue(i);
              if ( !mkItem.isAtomic() )
-                throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+                throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
              String mk = mkItem.getStringValue();
              jstring jStrMk = env->NewStringUTF(mk.c_str());
              CHECK_EXCEPTION(env);
@@ -950,7 +950,7 @@ DelFunction::evaluate(const ExternalFunction::Arguments_t& args,
           CHECK_EXCEPTION(env);
       }
       else
-          throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+          throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
 
       //    Key k = Key.createKey(majorList, minorList);
       jclass keyClass = env->FindClass("oracle/kv/Key");
@@ -1053,7 +1053,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
       // read input param 1 $parentKey
       Item keyParam = getOneItemArgument(args, 1);
       if(!keyParam.isJSONItem())
-        throwError("NoSQLDBModuleError", "$key param must be a JSON object");
+        throwError("InvalidKeyParam", "$key param must be a JSON object");
 
       //    List majorList = new ArrayList();
       jclass arrayListClass = env->FindClass("java/util/ArrayList");
@@ -1073,7 +1073,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
 
       if ( majorValues.isNull() )
       {
-          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+          throwError("NoMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
       }
       else if ( majorValues.isJSONItem() &&
            majorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
@@ -1083,7 +1083,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
           {
              Item mkItem = majorValues.getArrayValue(i);
              if ( !mkItem.isAtomic() )
-                 throwError("NoInstanceMatch", "JSON 'major' property must be a string or an array.");
+                 throwError("InvalidMajorKeyComponent", "JSON 'major' property must be a string or an array.");
              String mk = mkItem.getStringValue();
              jstring jStrMk = env->NewStringUTF(mk.c_str());
              CHECK_EXCEPTION(env);
@@ -1100,7 +1100,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
           CHECK_EXCEPTION(env);
       }
       else
-          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+          throwError("InvalidMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
 
       //    minorList.add("mk1");
       Item minorValues = keyParam.getObjectValue("minor");
@@ -1117,7 +1117,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
           {
              Item mkItem = minorValues.getArrayValue(i);
              if ( !mkItem.isAtomic() )
-                throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+                throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
              String mk = mkItem.getStringValue();
              jstring jStrMk = env->NewStringUTF(mk.c_str());
              CHECK_EXCEPTION(env);
@@ -1134,7 +1134,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
           CHECK_EXCEPTION(env);
       }
       else
-          throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+          throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
 
       //    Key k = Key.createKey(majorList, minorList);
       jclass keyClass = env->FindClass("oracle/kv/Key");
@@ -1147,7 +1147,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
       // read input param 2 $subRange
       Item subRangeParam = getOneItemArgument(args, 2);
       if(!subRangeParam.isJSONItem())
-        throwError("NoSQLDBModuleError", "$subRange param must be a JSON object");
+        throwError("NoKeyRange", "$subRange param must be a JSON object");
 
       Item prefix = subRangeParam.getObjectValue("prefix");
       Item start = subRangeParam.getObjectValue("start");
@@ -1195,7 +1195,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
       }
       else
       {
-          throwError("NoSQLDBModuleError", "$subRange param must contain either 'prefix' or 'start' and 'end' properties.");
+          throwError("InvalidKeyRange", "$subRange param must contain either 'prefix' or 'start' and 'end' properties.");
       }
 
       // get param 3 $depth as xs:string
@@ -1373,7 +1373,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
           Item lRes = NoSqlDBModule::getItemFactory()->createJSONObject(pairs);
           vec.push_back(lRes);
       }
-std::cout << "  mg: finish" << std::endl; std::cout.flush();
+
       return ItemSequence_t(new VectorItemSequence(vec));
     }
     catch (zorba::jvm::VMOpenException&)
@@ -1457,7 +1457,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
       // read input param 1
       Item keyParam = getOneItemArgument(args, 1);
       if(!keyParam.isJSONItem())
-        throwError("NoSQLDBModuleError", "$key param must be a JSON object");
+        throwError("InvalidKeyParam", "$key param must be a JSON object");
 
       //    List majorList = new ArrayList();
       jclass arrayListClass = env->FindClass("java/util/ArrayList");
@@ -1477,7 +1477,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
 
       if ( majorValues.isNull() )
       {
-          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+          throwError("NoMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
       }
       else if ( majorValues.isJSONItem() &&
            majorValues.getJSONItemKind() == store::StoreConsts::jsonArray )
@@ -1487,7 +1487,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
           {
              Item mkItem = majorValues.getArrayValue(i);
              if ( !mkItem.isAtomic() )
-                 throwError("NoInstanceMatch", "JSON 'major' property must be a string or an array.");
+                 throwError("InvalidMajorKeyComponent", "JSON 'major' property must be a string or an array.");
              String mk = mkItem.getStringValue();
              jstring jStrMk = env->NewStringUTF(mk.c_str());
              CHECK_EXCEPTION(env);
@@ -1504,7 +1504,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
           CHECK_EXCEPTION(env);
       }
       else
-          throwError("NoInstanceMatch", "JSON 'major' property must be specified as string or array.");
+          throwError("InvalidMajorKeyComponent", "JSON 'major' property must be specified as string or array.");
 
       //    minorList.add("mk1");
       Item minorValues = keyParam.getObjectValue("minor");
@@ -1521,7 +1521,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
           {
              Item mkItem = minorValues.getArrayValue(i);
              if ( !mkItem.isAtomic() )
-                throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+                throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
              String mk = mkItem.getStringValue();
              jstring jStrMk = env->NewStringUTF(mk.c_str());
              CHECK_EXCEPTION(env);
@@ -1538,7 +1538,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
           CHECK_EXCEPTION(env);
       }
       else
-          throwError("NoInstanceMatch", "JSON 'minor' property, if specified, must be a string or an array.");
+          throwError("InvalidMinorKeyComponent", "JSON 'minor' property, if specified, must be a string or an array.");
 
       //    Key k = Key.createKey(majorList, minorList);
       jclass keyClass = env->FindClass("oracle/kv/Key");
@@ -1551,7 +1551,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
       // read input param 2 $subRange
       Item subRangeParam = getOneItemArgument(args, 2);
       if(!subRangeParam.isJSONItem())
-        throwError("NoSQLDBModuleError", "$subRange param must be a JSON object");
+        throwError("NoKeyRange", "$subRange param must be a JSON object");
 
       Item prefix = subRangeParam.getObjectValue("prefix");
       Item start = subRangeParam.getObjectValue("start");
@@ -1600,7 +1600,7 @@ MultiDelFunction::evaluate(const ExternalFunction::Arguments_t& args,
       }
       else
       {
-          throwError("NoSQLDBModuleError", "$subRange param must contain either 'prefix' or 'start' and 'end' properties.");
+          throwError("InvalidKeyRange", "$subRange param must contain either 'prefix' or 'start' and 'end' properties.");
       }
 
       // get param 3 $depth as xs:string
