@@ -244,11 +244,11 @@ nosql:get-text($db as xs:anyURI, $key as object() ) as object()?
 
 
 (:~
- : Delete the key/value pair associated with the key.
+ : Removes the key/value pair associated with the key.
  :
  : @param $db the KVStore reference
  : @param $key the key used to lookup the key/value pair.
- : @return true if the delete is successful, or false if no existing value is present.
+ : @return true if the remove is successful, or false if no existing value is present.
  : @error nosql:NoInstanceMatch If the $db parameter does not corespond to a valid connection.
  : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
  : @error nosql:NoMajorKeyComponent If $key doesn't contain a major key component.
@@ -376,7 +376,7 @@ nosql:multi-get-text($db as xs:anyURI, $parentKey as object(), $subRange as obje
 
 
 (:~
- : Deletes the descendant Key/Value pairs associated with the parentKey. The
+ : Removes the descendant Key/Value pairs associated with the parentKey. The
  : subRange and the depth arguments can be used to further limit the key/value
  : pairs that are deleted.
  :
