@@ -42,15 +42,15 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
 
   variable $parentKey := {"major": ["M1", "M2"] };
 
-  variable $md1 := nosql:multi-delete-values($db, $parentKey, { "start" : "a", "end": "b" }, "PARENT_AND_DESCENDANTS");
+  variable $md1 := nosql:multi-remove($db, $parentKey, { "start" : "a", "end": "b" }, "PARENT_AND_DESCENDANTS");
 
   variable $g1 := nosql:get-text($db, $key1);
 
-  variable $md2 := nosql:multi-delete-values($db, $parentKey, { "start" : "m3", "end": "m4" }, "PARENT_AND_DESCENDANTS");
+  variable $md2 := nosql:multi-remove($db, $parentKey, { "start" : "m3", "end": "m4" }, "PARENT_AND_DESCENDANTS");
 
   variable $g2 := nosql:get-text($db, $key1);
 
-  variable $md3 := nosql:multi-delete-values($db, $parentKey, { "start" : "a", "end" : "z" }, "PARENT_AND_DESCENDANTS");
+  variable $md3 := nosql:multi-remove($db, $parentKey, { "start" : "a", "end" : "z" }, "PARENT_AND_DESCENDANTS");
 
   variable $g3 := nosql:get-text($db, $key1);
 

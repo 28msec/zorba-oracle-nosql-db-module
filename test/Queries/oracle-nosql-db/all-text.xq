@@ -27,7 +27,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   
   variable $ts2 := nosql:put-text($db, $key2, "Value for key2" );
   variable $valueVer21 := nosql:get-text($db, $key2);
-  variable $delRes2 := nosql:delete-value($db, $key2);
+  variable $delRes2 := nosql:remove($db, $key2);
   variable $valueVer22 := nosql:get-text($db, $key2);
 
   nosql:disconnect($db);
