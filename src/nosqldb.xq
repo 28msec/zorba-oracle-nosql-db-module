@@ -41,6 +41,7 @@ module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosqldb";
  :)
 import module namespace base64 = "http://www.zorba-xquery.com/modules/converters/base64";
 
+declare namespace jn = "http://jsoniq.org/functions";
 declare namespace an = "http://www.zorba-xquery.com/annotations";
 declare namespace ver = "http://www.zorba-xquery.com/options/versioning";
 
