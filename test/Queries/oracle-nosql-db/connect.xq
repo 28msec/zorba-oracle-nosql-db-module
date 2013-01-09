@@ -8,7 +8,7 @@ import module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosq
                    
   variable $db := nosql:connect( $opt);
   
-  nosql:disconnect($db);
+  (: nosql:disconnect($db); :)
   
   fn:exists($db)
 }

@@ -74,10 +74,10 @@ ExternalFunction* NoSqlDBModule::getExternalFunction(const String& localName)
   {
       return connect;
   }
-  else if (localName == "disconnect")
+/*  else if (localName == "disconnect")
   {
       return disconnect;
-  }
+  }*/
   else if (localName == "put-binary")
   {
       return put;
@@ -260,7 +260,7 @@ ConnectFunction::evaluate(const ExternalFunction::Arguments_t& args,
   return ItemSequence_t(new EmptySequence());
 }
 
-
+/*
 // disconnect code
 ItemSequence_t
 DisconnectFunction::evaluate(const ExternalFunction::Arguments_t& args,
@@ -351,6 +351,74 @@ DisconnectFunction::evaluate(const ExternalFunction::Arguments_t& args,
   }
 
   return ItemSequence_t(new EmptySequence());
+}
+*/
+
+void InstanceMap::closeConnection(jobject kvsObjRef)
+{
+    jthrowable lException = 0;
+
+    try
+    {
+      if (kvsObjRef)
+      {
+          // call kvsObjRef.close()
+          jclass kvsClass = env->FindClass("oracle/kv/KVStore");
+          jmethodID midClose = env->GetMethodID(kvsClass, "close", "()V");
+          env->CallVoidMethod(kvsObjRef, midClose);
+
+          env->DeleteGlobalRef(kvsObjRef);
+      }
+      else
+      {
+        throwError("NoInstanceMatch", "No instance of NoSQL DB with the given identifier was found.");
+      }
+    }
+    catch (zorba::jvm::VMOpenException&)
+    {
+      Item lQName = NoSqlDBModule::getItemFactory()->createQName(NOSQLDB_MODULE_NAMESPACE,
+                                            "VM001");
+      throw USER_EXCEPTION(lQName, "Could not start the Java VM (is the classpath set?)");
+    }
+    catch (JavaException&)
+    {
+      // prints out to std err the stacktrace
+      // env->ExceptionDescribe();
+
+      jclass stringWriterClass = env->FindClass("java/io/StringWriter");
+      jclass printWriterClass = env->FindClass("java/io/PrintWriter");
+      jclass throwableClass = env->FindClass("java/lang/Throwable");
+      jobject stringWriter = env->NewObject(
+                stringWriterClass,
+                env->GetMethodID(stringWriterClass, "<init>", "()V"));
+
+      jobject printWriter = env->NewObject(
+                printWriterClass,
+                env->GetMethodID(printWriterClass, "<init>", "(Ljava/io/Writer;)V"),
+                stringWriter);
+
+      env->CallObjectMethod(lException,
+                env->GetMethodID(throwableClass, "printStackTrace",
+                        "(Ljava/io/PrintWriter;)V"),
+                printWriter);
+
+      //env->CallObjectMethod(printWriter, env->GetMethodID(printWriterClass, "flush", "()V"));
+      jmethodID toStringMethod =
+            env->GetMethodID(stringWriterClass, "toString", "()Ljava/lang/String;");
+      jobject errorMessageObj = env->CallObjectMethod(
+                stringWriter, toStringMethod);
+      jstring errorMessage = (jstring) errorMessageObj;
+      const char *errMsg = env->GetStringUTFChars(errorMessage, 0);
+      std::stringstream s;
+      s << "A Java Exception was thrown:" << std::endl << errMsg;
+      env->ReleaseStringUTFChars(errorMessage, errMsg);
+      std::string err("");
+      err += s.str();
+      env->ExceptionClear();
+      Item lQName = NoSqlDBModule::getItemFactory()->createQName(NOSQLDB_MODULE_NAMESPACE,
+                "JAVA-EXCEPTION");
+      throw USER_EXCEPTION(lQName, err);
+    }
 }
 
 

@@ -55,7 +55,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $g3 := nosql:get-text($db, $key1);
 
 
-  nosql:disconnect($db);
+  (: nosql:disconnect($db); :)
 
   { 
     "md1": { $md1 }, 

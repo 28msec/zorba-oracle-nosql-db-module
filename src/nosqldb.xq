@@ -76,7 +76,7 @@ declare %private %an:sequential function
 nosql:connect-internal($store-name as xs:string, $helper-host-ports as xs:string+ ) as xs:anyURI external;
 
 
-(:~
+(:
  : Disconnect from a KVStore
  :
  : @param $db the KVStore reference
@@ -84,9 +84,9 @@ nosql:connect-internal($store-name as xs:string, $helper-host-ports as xs:string
  : @error nosql:NoInstanceMatch If the $db parameter does not correspond to a valid connection.
  : @error nosql:VM001 If the JVM cannot be initialized correctly.
  : @error nosql:JAVA-EXCEPTION If a java exception is thrown.
- :)
+ :
 declare %an:sequential function
-nosql:disconnect($db as xs:anyURI) as empty-sequence() external;
+nosql:disconnect($db as xs:anyURI) as empty-sequence() external; :)
 
 
 (:~

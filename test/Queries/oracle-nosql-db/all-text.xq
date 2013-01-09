@@ -30,7 +30,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $delRes2 := nosql:remove($db, $key2);
   variable $valueVer22 := nosql:get-text($db, $key2);
 
-  nosql:disconnect($db);
+  (: nosql:disconnect($db); :)
 
   { 
     "db" : { fn:exists($db) }, 

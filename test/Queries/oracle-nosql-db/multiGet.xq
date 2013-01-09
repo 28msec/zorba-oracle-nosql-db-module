@@ -50,7 +50,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $mg3 := nosql:multi-get-text($db, $parentKey, { "start" : "a", "end" : "z" }, "PARENT_AND_DESCENDANTS", "FORWARD");
 
 
-  nosql:disconnect($db);
+  (: nosql:disconnect($db); :)
 
   { 
     "mg1": { $mg1 }, 

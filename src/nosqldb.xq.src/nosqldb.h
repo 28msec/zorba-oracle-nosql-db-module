@@ -52,7 +52,7 @@ namespace nosqldb
 class NoSqlDBModule;
 class ConnectFunction;
 class IsConnectFunction;
-class DisconnectFunction;
+//class DisconnectFunction;
 class PutFunction;
 class GetFunction;
 class DelFunction;
@@ -92,7 +92,7 @@ class ConnectFunction : public ContextualExternalFunction
                const zorba::DynamicContext*) const;
 };
 
-
+/*
 class DisconnectFunction : public ContextualExternalFunction
 {
   private:
@@ -119,7 +119,7 @@ class DisconnectFunction : public ContextualExternalFunction
       evaluate(const ExternalFunction::Arguments_t& args,
                const zorba::StaticContext*,
                const zorba::DynamicContext*) const;
-};
+};*/
 
 
 class PutFunction : public ContextualExternalFunction
@@ -263,7 +263,7 @@ class NoSqlDBModule : public ExternalModule
 {
   private:
     ExternalFunction* connect;
-    ExternalFunction* disconnect;
+    //ExternalFunction* disconnect;
     ExternalFunction* put;
     ExternalFunction* get;
     ExternalFunction* del;
@@ -278,7 +278,7 @@ class NoSqlDBModule : public ExternalModule
 
     NoSqlDBModule() :
         connect(new ConnectFunction(this)),
-        disconnect(new DisconnectFunction(this)),
+        //disconnect(new DisconnectFunction(this)),
         put(new PutFunction(this)),
         get(new GetFunction(this)),
         del(new DelFunction(this)),
@@ -289,7 +289,7 @@ class NoSqlDBModule : public ExternalModule
     ~NoSqlDBModule()
     {
         delete connect;
-        delete disconnect;
+        //delete disconnect;
         delete put;
         delete get;
         delete del;
@@ -315,6 +315,8 @@ class InstanceMap : public ExternalFunctionParameter
     typedef std::map<String, jobject> InstanceMap_t;
     JNIEnv* env;
     InstanceMap_t* instanceMap;
+    void closeConnection(jobject kvsObjRef);
+
 
   public:
     InstanceMap(JNIEnv* aEnv) : env(aEnv), instanceMap(new InstanceMap_t())
@@ -338,6 +340,9 @@ class InstanceMap : public ExternalFunctionParameter
              lIter != instanceMap->end(); ++lIter)
         {
           jobject kvsObjRef = lIter->second;
+
+          closeConnection(kvsObjRef);
+
           env->DeleteGlobalRef(kvsObjRef);
         }
         instanceMap->clear();
