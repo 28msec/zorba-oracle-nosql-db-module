@@ -17,7 +17,7 @@ xquery version "3.0";
 
 
 (:~
- : This module provides minimal funtionality to interact with an <a href="http://www.oracle.com/technetwork/products/nosqldb/overview/index.html">Oracle NoSQL Database</a>.
+ : This module provides minimal functionality to interact with an <a href="http://www.oracle.com/technetwork/products/nosqldb/overview/index.html">Oracle NoSQL Database</a>.
  :
  : Oracle NoSQL Database is built upon the proven Oracle Berkeley DB Java Edition
  : high-availability storage engine, which is in widespread use in enterprises across
@@ -94,7 +94,7 @@ nosql:disconnect($db as xs:anyURI) as empty-sequence() external;
  : Ex:  <pre>{ "value":"value as string", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
+ : @param $key the key used to look up the key/value pair.
  : @return the value and version associated with the key, or empty sequence if no associated value was found.
  : @error nosql:NoInstanceMatch If the $db parameter does not correspond to a valid connection.
  : @error nosql:VM001 If the JVM cannot be initialized correctly.
@@ -110,7 +110,7 @@ nosql:get($db as xs:anyURI, $key as xs:string) as xs:string
  : Put a key/value pair, inserting or overwriting as appropriate.
  :
  : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
+ : @param $key the key used to look up the key/value pair.
  : @param $value the value part of the key/value pair as string.
  : @return the version of the new value.
  : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
@@ -128,7 +128,7 @@ nosql:put($db as xs:anyURI, $key as xs:string, $value as xs:string) as xs:long
  : Delete the key/value pair associated with the key.
  :
  : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
+ : @param $key the key used to look up the key/value pair.
  : @return true if the delete is successful, or false if no existing value is present.
  : @error nosql:NoInstanceMatch If the $db parameter does not correspond to a valid connection.
  : @error nosql:VM001 If the JVM cannot be initialized correctly.
@@ -149,7 +149,7 @@ nosql:delete($db as xs:anyURI, $key as xs:string) as xs:boolean
  : Put a key/value pair, inserting or overwriting as appropriate.
  :
  : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
+ : @param $key the key used to look up the key/value pair.
  : <pre>{
  :    "major": ["major-key1","major-key2","major-key3"],
  :    "minor": ["minor-key1","minor-key2","minor-key3"]
@@ -171,7 +171,7 @@ nosql:put-binary($db as xs:anyURI, $key as object(), $value as xs:base64Binary) 
  : Put a key/value pair, inserting or overwriting as appropriate.
  :
  : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
+ : @param $key the key used to look up the key/value pair.
  : <pre>{
  :    "major": ["major-key1","major-key2","major-key3"],
  :    "minor": ["minor-key1","minor-key2","minor-key3"]
@@ -197,7 +197,7 @@ nosql:put-text($db as xs:anyURI, $key as object(), $string-value as xs:string) a
  : Ex:  <pre>{ "value":"value as base64Binary", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
+ : @param $key the key used to look up the key/value pair.
  : @return the value and version associated with the key, or
  :         empty sequence if no associated value was found.
  : @error nosql:NoInstanceMatch If the $db parameter does not correspond to a valid connection.
@@ -216,7 +216,7 @@ nosql:get-binary($db as xs:anyURI, $key as object() ) as object()? external;
  : Ex:  <pre>{ "value":"value as string", "version":"xs:long" }</pre>
  :
  : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
+ : @param $key the key used to look up the key/value pair.
  : @return the value and version associated with the key, or
  :         empty sequence if no associated value was found.
  : @error nosql:NoInstanceMatch If the $db parameter does not correspond to a valid connection.
@@ -247,7 +247,7 @@ nosql:get-text($db as xs:anyURI, $key as object() ) as object()?
  : Removes the key/value pair associated with the key.
  :
  : @param $db the KVStore reference
- : @param $key the key used to lookup the key/value pair.
+ : @param $key the key used to look up the key/value pair.
  : @return true if the remove is successful, or false if no existing value is present.
  : @error nosql:NoInstanceMatch If the $db parameter does not correspond to a valid connection.
  : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
@@ -308,7 +308,7 @@ declare variable $nosql:direction-FORWARD as xs:string := "FORWARD";
  : If anything else PARENT_AND_DESCENDANTS is implied.
  : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or
  : anything else for forward.
- : @return a list of objects containg key, value as base64Binary and version or
+ : @return a list of objects containing key, value as base64Binary and version or
  :         empty sequence if no key was found.
  : @error nosql:NoInstanceMatch If the $db parameter does not correspond to a valid connection.
  : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
@@ -348,7 +348,7 @@ nosql:multi-get-binary($db as xs:anyURI, $parent-key as object(), $sub-range as 
  : If anything else PARENT_AND_DESCENDANTS is implied.
  : @param $direction FORWARD or REVERSE. Specify the order of results, REVERSE for reverse or
  : anything else for forward.
- : @return a list of objects containg key, value as string and version or
+ : @return a list of objects containing key, value as string and version or
  :         empty sequence if no key was found.
  : @error nosql:NoInstanceMatch If the $db parameter does not correspond to a valid connection.
  : @error nosql:InvalidKeyParam If the $key parameter is not a JSON object.
