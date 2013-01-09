@@ -40,7 +40,6 @@ module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosqldb";
  : Import module for encoding/decoding base64Binary to/from string.
  :)
 import module namespace base64 = "http://www.zorba-xquery.com/modules/converters/base64";
-import module namespace jn = "http://jsoniq.org/functions";
 
 declare namespace an = "http://www.zorba-xquery.com/annotations";
 declare namespace ver = "http://www.zorba-xquery.com/options/versioning";
