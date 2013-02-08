@@ -10,17 +10,17 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $db := nosql:connect( $opt);
   
   variable $key1 := {
-        "major": ["Mkey1a", "Mkey1b"], 
+        "major": ["a-bkey1a", "a-bkey1b"], 
         "minor":["mk"]
       };
   
   variable $key2 := { 
-        "major": ["Mkey2a", "Mkey2b"]
+        "major": ["a-bkey2a", "a-bkey2b"]
         , 
         "minor":[null] 
       };
       
-  variable $val1 as xs:base64Binary := base64:encode("Value for Mkey1a/Mkey1b-mk");  
+  variable $val1 as xs:base64Binary := base64:encode("Value for a-bkey1a/a-bkey1b-mk");  
   variable $ts1 := nosql:put-binary($db, $key1, $val1 );
   variable $valueVer1 := nosql:get-binary($db, $key1);
   

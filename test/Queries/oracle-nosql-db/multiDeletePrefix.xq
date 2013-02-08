@@ -10,27 +10,27 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $db := nosql:connect( $opt);
   
   variable $key1 := {
-        "major": ["M1", "M2"], 
+        "major": ["mDP1", "mDP2"], 
         "minor":["m1"]
       };
   
   variable $key2 := {
-        "major": ["M1", "M2"], 
+        "major": ["mDP1", "mDP2"], 
         "minor":["m2"]
       };
       
   variable $key31 := {
-        "major": ["M1", "M2"], 
+        "major": ["mDP1", "mDP2"], 
         "minor":["m3", "m31"]
       };
 
   variable $key32 := {
-        "major": ["M1", "M2"], 
+        "major": ["mDP1", "mDP2"], 
         "minor":["m3", "m32"]
       };
 
   variable $key4 := {
-        "major": ["M1", "M2"], 
+        "major": ["mDP1", "mDP2"], 
         "minor":["m4", "a", "b"]
       };
 
@@ -40,7 +40,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   nosql:put-text($db, $key32, "V m32" );
   nosql:put-text($db, $key4, "V m4 a b" );
 
-  variable $parentKey := {"major": ["M1", "M2"] };
+  variable $parentKey := {"major": ["mDP1", "mDP2"] };
 
   variable $md1 := nosql:multi-remove($db, $parentKey, { "prefix" : "a" }, "PARENT_AND_DESCENDANTS");
 
