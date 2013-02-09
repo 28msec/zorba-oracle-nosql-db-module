@@ -10,11 +10,11 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $db := nosql:connect( $opt);
   
   variable $key1 := {
-        "major": ["Mkey2", "Mkey21"], 
+        "major": ["getkey2", "getkey21"], 
         "minor":["mk2"]
       };
   
-  variable $v := "Value for Mkey2/Mkey21-mk2";
+  variable $v := "Value for getkey2/getkey21-mk2";
   
   variable $ts := nosql:put-text($db, $key1, $v  );
   variable $valueVersion := nosql:get-text($db, $key1);

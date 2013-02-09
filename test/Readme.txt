@@ -1,7 +1,7 @@
 How to run the tests
 --------------------
 
-1. Install NpSQL DB
+1. Install Oracle NoSQL DB
 
 Download Oracle NoSQL Database, Community Edition from: 
 http://www.oracle.com/technetwork/products/nosqldb/downloads/index.html
