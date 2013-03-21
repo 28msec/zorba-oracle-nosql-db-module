@@ -17,7 +17,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $key2 := { 
         "major": ["a-tkey2a", "a-tkey2b"]
         , 
-        "minor":[null] 
+        "minor":[jn:null()] 
       };
       
   

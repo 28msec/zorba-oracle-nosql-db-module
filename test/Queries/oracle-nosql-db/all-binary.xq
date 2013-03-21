@@ -17,7 +17,7 @@ import module namespace base64 = "http://www.zorba-xquery.com/modules/converters
   variable $key2 := { 
         "major": ["a-bkey2a", "a-bkey2b"]
         , 
-        "minor":[null] 
+        "minor":[jn:null()] 
       };
       
   variable $val1 as xs:base64Binary := base64:encode("Value for a-bkey1a/a-bkey1b-mk");  
