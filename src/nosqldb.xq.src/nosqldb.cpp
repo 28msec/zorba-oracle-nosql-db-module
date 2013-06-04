@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include "nosqldb.h"
+#include <sstream>
 
+#include "nosqldb.h"
 
 namespace zorba
 {
