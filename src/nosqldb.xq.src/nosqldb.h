@@ -17,11 +17,8 @@
 #ifndef NOSQLDB_H
 #define NOSQLDB_H
 
-
-#include <sstream>
-#include <iostream>
 #include <cstdlib>
-#include <list>
+#include <map>
 
 #include <zorba/base64.h>
 #include <zorba/base64_stream.h>
@@ -30,7 +27,6 @@
 #include <zorba/function.h>
 #include <zorba/external_module.h>
 #include <zorba/user_exception.h>
-#include <zorba/file.h>
 #include <zorba/item_factory.h>
 #include <zorba/serializer.h>
 #include <zorba/singleton_item_sequence.h>
