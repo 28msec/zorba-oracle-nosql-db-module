@@ -486,7 +486,7 @@ PutFunction::evaluate(const ExternalFunction::Arguments_t& args,
       if (valueItem.isEncoded())
       {
           String lTmpEncoded(lMsg, lSize);
-          valueString = encoding::Base64::decode(lTmpEncoded).c_str();
+          valueString = base64::decode(lTmpEncoded).c_str();
       }
       else
       {
