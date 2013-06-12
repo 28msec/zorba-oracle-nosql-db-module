@@ -23,17 +23,16 @@
 #include <cstdlib>
 #include <list>
 
-#include <zorba/base64.h>
-#include <zorba/base64_stream.h>
-#include <zorba/empty_sequence.h>
 #include <zorba/diagnostic_list.h>
-#include <zorba/function.h>
+#include <zorba/empty_sequence.h>
 #include <zorba/external_module.h>
-#include <zorba/user_exception.h>
-#include <zorba/file.h>
+#include <zorba/function.h>
 #include <zorba/item_factory.h>
 #include <zorba/serializer.h>
 #include <zorba/singleton_item_sequence.h>
+#include <zorba/user_exception.h>
+#include <zorba/util/base64.h>
+#include <zorba/util/base64_stream.h>
 #include <zorba/util/uuid.h>
 #include <zorba/vector_item_sequence.h>
 #include <zorba/zorba.h>
