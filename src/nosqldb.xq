@@ -33,6 +33,7 @@ xquery version "3.0";
  : path ( usually located in "C:\Program Files\Java\jre6\bin\client".
  :
  : @author Cezar Andrei
+ : @project DB Drivers/ORACLE NoSQL
  :)
 module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosqldb";
 
