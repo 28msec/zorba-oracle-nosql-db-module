@@ -844,7 +844,7 @@ GetFunction::evaluate(const ExternalFunction::Arguments_t& args,
 
       // assemble result { "value" : "the value" , "version" : 123 }
       std::string ssString(buf, jbaSize);
-      Item val = NoSqlDBModule::getItemFactory()->createBase64Binary((const unsigned char*)ssString.c_str(), ssString.size());
+      Item val( NoSqlDBModule::getItemFactory()->createBase64Binary(ssString.c_str(), ssString.size(), false) );
       Item vers = NoSqlDBModule::getItemFactory()->createLong(versionLong);
 
       std::vector<std::pair<Item, Item> > pairs;
@@ -1427,7 +1427,7 @@ std::cout << "  mg: start" << std::endl; std::cout.flush();
           Item keyJsonObj =  NoSqlDBModule::getItemFactory()->createJSONObject(keyPairs);
 
           std::string ssString(buf, jbaSize);
-          Item val = NoSqlDBModule::getItemFactory()->createBase64Binary((const unsigned char*)ssString.c_str(), ssString.size());
+          Item val( NoSqlDBModule::getItemFactory()->createBase64Binary(ssString.c_str(), ssString.size(), false) );
           Item vers = NoSqlDBModule::getItemFactory()->createLong(version);
 
           std::vector<std::pair<Item, Item> > pairs;
