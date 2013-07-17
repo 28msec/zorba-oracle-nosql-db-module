@@ -1,5 +1,5 @@
 import module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosqldb";
-import module namespace base64 = "http://www.zorba-xquery.com/modules/converters/base64";
+import module namespace base64 = "http://zorba.io/modules/base64";
 
 {
   variable $opt := {
