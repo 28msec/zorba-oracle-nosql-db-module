@@ -1,4 +1,4 @@
-import module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosqldb";
+import module namespace nosql = "http://zorba.io/modules/oracle-nosqldb";
 import module namespace base64 = "http://zorba.io/modules/base64";
 
 {

@@ -17,7 +17,9 @@ xquery version "3.0";
 
 
 (:~
- : This module provides minimal functionality to interact with an <a href="http://www.oracle.com/technetwork/products/nosqldb/overview/index.html">Oracle NoSQL Database</a>.
+ : This module provides minimal functionality to interact with an 
+ : <a href="http://www.oracle.com/technetwork/products/nosqldb/overview/index.html">
+ : Oracle NoSQL Database</a>.
  :
  : Oracle NoSQL Database is built upon the proven Oracle Berkeley DB Java Edition
  : high-availability storage engine, which is in widespread use in enterprises across
@@ -25,7 +27,8 @@ xquery version "3.0";
  : The resulting solution provides distributed, highly available key/value storage that is well
  : suited to large-volume, latency-sensitive applications.<br/>
  :
- : The kvclient library is used to implement these functions. Set the NOSQLDB_HOME environment variable to use this module.
+ : The kvclient library is used to implement these functions. Set the NOSQLDB_HOME 
+ : environment variable when compilling this module.
  : <br />
  : <br />
  : <br /><b>Note:</b> Since this module has a Java library dependency a JVM required
@@ -35,7 +38,7 @@ xquery version "3.0";
  : @author Cezar Andrei
  : @project DB Drivers/ORACLE NoSQL
  :)
-module namespace nosql = "http://www.zorba-xquery.com/modules/oracle-nosqldb";
+module namespace nosql = "http://zorba.io/modules/oracle-nosqldb";
 
 (:~
  : Import module for encoding/decoding base64Binary to/from string.

@@ -37,7 +37,7 @@
 #include "JavaVMSingleton.h"
 
 
-#define NOSQLDB_MODULE_NAMESPACE "http://www.zorba-xquery.com/modules/oracle-nosqldb"
+#define NOSQLDB_MODULE_NAMESPACE "http://zorba.io/modules/oracle-nosqldb"
 
 
 namespace zorba
