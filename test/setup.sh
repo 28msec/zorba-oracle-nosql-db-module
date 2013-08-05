@@ -3,6 +3,15 @@
 
 JAVA7=/usr/lib/jvm/java-7-oracle/bin/java
 
+# kv-1.2.123.tar.gz
+TGZ=kv-ce-2.1.8.tar.gz
+
+# kv-1.2.123
+KVDIR=kv-2.1.8 
+
+# kvstore-1.2.123.jar
+KVSTOREJAR=kvstore.jar
+
 while getopts distcvhj: opt
 do
   case "$opt" in
@@ -13,31 +22,31 @@ do
             ;;
         d)
             echo "Download" 
-            wget http://my.zorba-xquery.com/tmp/kv-1.2.123.tar.gz
+            wget http://my.zorba-xquery.com/tmp/$TGZ
             ;;
         i)
             echo "Install"
-            tar -xvzf kv-1.2.123.tar.gz
+            tar -xvzf $TGZ
             ;;
         s)
             echo "Start"
             echo "   Running with java (JDK7 is required):"
             $JAVA7 -version
-            $JAVA7 -cp ./kv-1.2.123/lib/kvstore-1.2.123.jar -Xms500m -Xmx500m oracle.kv.util.kvlite.KVLite -root ./kv-1.2.123/kvroot -store kvstore -host 127.0.0.1 -port 5000 -admin 5001 &
+            $JAVA7 -cp ./$KVDIR/lib/$KVSTOREJAR -Xms500m -Xmx500m oracle.kv.util.kvlite.KVLite -root ./$KVDIR/kvroot -store kvstore -host 127.0.0.1 -port 5000 -admin 5001 &
             ;;
         t)
             echo "Stop"
             echo "   Running with java :"
             $JAVA7 -version
-            $JAVA7 -jar ./kv-1.2.123/lib/kvstore-1.2.123.jar stop -root ./kv-1.2.123/kvroot
+            $JAVA7 -jar ./$KVDIR/lib/$KVSTOREJAR stop -root ./$KVDIR/kvroot
             ;;
         c)
             echo "Clean data"
-            rm -fR ./kv-1.2.123/kvroot
+            rm -fR ./$KVDIR/kvroot
             ;;
         v)
             echo "Clean everything"
-            rm -fR ./kv-1.2.123 kv-1.2.123.tar.gz
+            rm -fR ./$KVDIR $TGZ
             ;;            
         h)
             echo "usage: $0 [-j java7/path] [-distcvh] " 

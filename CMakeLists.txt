@@ -29,7 +29,7 @@ IF (zorba_util-jvm_module_FOUND)
     MESSAGE (STATUS "NOSQLDB_HOME = " $ENV{NOSQLDB_HOME})
 
     IF (WIN32)
-      SET (NOSQLDB_PATH "$ENV{NOSQLDB_HOME} $ENV{NOSQLDB_HOME}\\lib C:\\Libs\\kv-1.2.123 C:\\dev\\libraries\\nosqldb C:\\dev\\libraries\\nosqldb\\lib")
+      SET (NOSQLDB_PATH "$ENV{NOSQLDB_HOME} $ENV{NOSQLDB_HOME}\\lib C:\\Libs\\kv-2.1.8 C:\\dev\\libraries\\nosqldb C:\\dev\\libraries\\nosqldb\\lib")
       MESSAGE (STATUS "pdfbox fontbox jars searching path: " ${NOSQLDB_PATH} )
     ELSE (WIN32)
       SET (NOSQLDB_PATH $ENV{NOSQLDB_HOME} $ENV{NOSQLDB_HOME}/lib
