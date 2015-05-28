@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+MESSAGE(STATUS "")
+MESSAGE(STATUS "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+MESSAGE(STATUS "Configuring external module <oracle-nosql-db>")
+MESSAGE(STATUS "-------------------------------------------------------------")
+MESSAGE(STATUS "")
+
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 PROJECT (zorba_nosqldb_module)
 
-MESSAGE (STATUS " --- Module:   nosqldb    ---")
 # The util-jvm tool finds Java and JNI, so all standard cached JAVA_
 # variables will be set. util-jvm also caches Java_FOUND and JNI_FOUND
 # for us.
@@ -60,24 +65,41 @@ IF (zorba_util-jvm_module_FOUND)
       INCLUDE ("${Zorba_USE_FILE}")
 
       ADD_SUBDIRECTORY ("src")
-#      ADD_SUBDIRECTORY ("srcJava")
       DECLARE_ZORBA_JAR(FILE ${KVCLIENT_JAR} EXTERNAL)
 
       ADD_TEST_DIRECTORY("${PROJECT_SOURCE_DIR}/test")
 
       DONE_DECLARING_ZORBA_URIS ()
+      
+      MESSAGE(STATUS "")
+      MESSAGE(STATUS "-------------------------------------------------------------")
+      MESSAGE(STATUS "Configuration SUCCEEDED for external module <oracle-nosql-db>")
 
     ELSE( ALL_NOSQLDB_JARS )
       MESSAGE (STATUS "kvclient jar not found; skipping nosqldb module.")
       MESSAGE (STATUS "   set NOSQLDB_HOME environment variable.")
+      
+      MESSAGE(STATUS "")
+      MESSAGE(STATUS "-------------------------------------------------------------")  
+      MESSAGE(STATUS "Configuration FAILED for external module <oracle-nosql-db>")
+      
     ENDIF( ALL_NOSQLDB_JARS )
 
   ELSE (JNI_FOUND)
     MESSAGE (STATUS "Java and/or JNI not found; skipping nosqldb module.")
+    
+    MESSAGE(STATUS "")
+    MESSAGE(STATUS "-------------------------------------------------------------")  
+    MESSAGE(STATUS "Configuration FAILED for external module <oracle-nosql-db>")
+    
   ENDIF (JNI_FOUND)
 
 ELSE (zorba_util-jvm_module_FOUND)
   MESSAGE (STATUS "Zorba's util-jvm module not found; skipping nosqldb module.")
+  
+  MESSAGE(STATUS "")
+  MESSAGE(STATUS "-------------------------------------------------------------")  
+  MESSAGE(STATUS "Configuration FAILED for external module <oracle-nosql-db>")
 ENDIF (zorba_util-jvm_module_FOUND)
 
-MESSAGE (STATUS " --- End module:   nosqldb    ---")
+MESSAGE(STATUS "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
