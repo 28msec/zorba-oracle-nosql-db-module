@@ -39,6 +39,7 @@ IF (zorba_util-jvm_module_FOUND)
     ELSE (WIN32)
       SET (NOSQLDB_PATH $ENV{NOSQLDB_HOME} $ENV{NOSQLDB_HOME}/lib
            /usr/share/java/ /usr/share/java/kvclient/ /opt/local/share/java/kvclient/
+           /usr/local/lib/
            ${Java_LIBRARIES})
     ENDIF (WIN32)
 
